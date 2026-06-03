@@ -6,6 +6,7 @@
     :close-on-click-modal="false"
     :append-to-body="true"
     :is-mobile="isMobile"
+    :align-center="alignCenter"
   >
     <p class="confirm-message">{{ message }}</p>
     <template #footer>
@@ -40,6 +41,7 @@ const props = withDefaults(
     danger?: boolean
     loading?: boolean
     isMobile?: boolean
+    alignCenter?: boolean
   }>(),
   {
     confirmText: 'Confirm',
@@ -47,6 +49,7 @@ const props = withDefaults(
     danger: false,
     loading: false,
     isMobile: false,
+    alignCenter: false,
   },
 )
 

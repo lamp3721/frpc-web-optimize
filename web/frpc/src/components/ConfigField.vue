@@ -1,6 +1,14 @@
 <template>
   <!-- Edit mode: use el-form-item for validation -->
-  <el-form-item v-if="!readonly" :label="label" :prop="prop" :class="($attrs.class as string)">
+  <el-form-item v-if="!readonly" :prop="prop" :class="($attrs.class as string)">
+    <template #label>
+      <span class="config-field-label-wrap">
+        {{ label }}
+        <el-tooltip v-if="tooltip" placement="right" :content="tooltip" :show-after="300" raw-content>
+          <el-icon class="config-field-tip-icon"><QuestionFilled /></el-icon>
+        </el-tooltip>
+      </span>
+    </template>
     <!-- text -->
     <el-input
       v-if="type === 'text'"
@@ -37,7 +45,7 @@
       selectable
       full-width
       filterable
-      :filter-placeholder="placeholder || 'Select...'"
+      :filter-placeholder="placeholder || '请选择...'"
       @update:model-value="$emit('update:modelValue', $event)"
     >
       <template #default="{ filterText }">
@@ -80,7 +88,12 @@
 
   <!-- Readonly mode: plain display -->
   <div v-else class="config-field-readonly" :class="($attrs.class as string)">
-    <div class="config-field-label">{{ label }}</div>
+    <div class="config-field-label">
+      {{ label }}
+      <el-tooltip v-if="tooltip" placement="right" :content="tooltip" :show-after="300" raw-content>
+        <el-icon class="config-field-tip-icon"><QuestionFilled /></el-icon>
+      </el-tooltip>
+    </div>
     <!-- switch readonly -->
     <el-switch
       v-if="type === 'switch'"
@@ -113,6 +126,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import KeyValueEditor from './KeyValueEditor.vue'
 import StringListEditor from './StringListEditor.vue'
 import PopoverMenu from '@shared/components/PopoverMenu.vue'
@@ -127,6 +141,7 @@ const props = withDefaults(
     placeholder?: string
     disabled?: boolean
     tip?: string
+    tooltip?: string
     prop?: string
     options?: Array<{ label: string; value: string | number }>
     min?: number
@@ -141,12 +156,13 @@ const props = withDefaults(
     placeholder: '',
     disabled: false,
     tip: '',
+    tooltip: '',
     prop: '',
     options: () => [],
     min: undefined,
     max: undefined,
-    keyPlaceholder: 'Key',
-    valuePlaceholder: 'Value',
+    keyPlaceholder: '键',
+    valuePlaceholder: '值',
   },
 )
 
@@ -197,6 +213,23 @@ const displayValue = computed(() => {
 </script>
 
 <style scoped>
+.config-field-label-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.config-field-tip-icon {
+  font-size: 13px;
+  color: var(--color-text-light);
+  cursor: help;
+  vertical-align: middle;
+}
+
+.config-field-tip-icon:hover {
+  color: var(--color-text-secondary);
+}
+
 .config-field-switch-wrap {
   display: flex;
   align-items: center;

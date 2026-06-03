@@ -43,7 +43,7 @@
             fill="currentColor"
           />
         </svg>
-        Add
+        添加
       </button>
     </template>
   </div>
@@ -63,8 +63,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  keyPlaceholder: 'Key',
-  valuePlaceholder: 'Value',
+  keyPlaceholder: '键',
+  valuePlaceholder: '值',
   readonly: false,
 })
 

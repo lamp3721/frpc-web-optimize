@@ -1,9 +1,9 @@
 <template>
-  <ConfigSection title="Transport Options" collapsible :readonly="readonly"
+  <ConfigSection title="传输选项" collapsible :readonly="readonly"
     :has-value="form.useEncryption || form.useCompression">
     <div class="field-row two-col">
-      <ConfigField label="Use Encryption" type="switch" v-model="form.useEncryption" :readonly="readonly" />
-      <ConfigField label="Use Compression" type="switch" v-model="form.useCompression" :readonly="readonly" />
+      <ConfigField label="加密传输" type="switch" v-model="form.useEncryption" :readonly="readonly" />
+      <ConfigField label="压缩传输" type="switch" v-model="form.useCompression" :readonly="readonly" />
     </div>
   </ConfigSection>
 </template>

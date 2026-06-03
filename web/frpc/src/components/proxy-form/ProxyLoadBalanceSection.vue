@@ -1,8 +1,8 @@
 <template>
-  <ConfigSection title="Load Balancer" collapsible :readonly="readonly" :has-value="!!form.loadBalancerGroup">
+  <ConfigSection title="负载均衡" collapsible :readonly="readonly" :has-value="!!form.loadBalancerGroup">
     <div class="field-row two-col">
-      <ConfigField label="Group" type="text" v-model="form.loadBalancerGroup" placeholder="Group name" :readonly="readonly" />
-      <ConfigField label="Group Key" type="text" v-model="form.loadBalancerGroupKey" :readonly="readonly" />
+      <ConfigField label="分组" type="text" v-model="form.loadBalancerGroup" placeholder="分组名称" :readonly="readonly" tooltip="负载均衡分组名。同一分组内的代理会共享连接。留空则不参与负载均衡。" />
+      <ConfigField label="分组密钥" type="text" v-model="form.loadBalancerGroupKey" :readonly="readonly" tooltip="负载均衡分组的认证密钥。同一分组的所有代理必须使用相同的密钥。" />
     </div>
   </ConfigSection>
 </template>

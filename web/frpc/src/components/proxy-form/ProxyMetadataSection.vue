@@ -1,7 +1,7 @@
 <template>
-  <ConfigSection title="Metadata" collapsible :readonly="readonly" :has-value="form.metadatas.length > 0 || form.annotations.length > 0">
-    <ConfigField label="Metadatas" type="kv" v-model="form.metadatas" :readonly="readonly" />
-    <ConfigField label="Annotations" type="kv" v-model="form.annotations" :readonly="readonly" />
+  <ConfigSection title="元数据" collapsible :readonly="readonly" :has-value="form.metadatas.length > 0 || form.annotations.length > 0">
+    <ConfigField label="元数据" type="kv" v-model="form.metadatas" :readonly="readonly" />
+    <ConfigField label="注解" type="kv" v-model="form.annotations" :readonly="readonly" />
   </ConfigSection>
 </template>
 

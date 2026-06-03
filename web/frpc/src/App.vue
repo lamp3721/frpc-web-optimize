@@ -3,7 +3,7 @@
     <header class="header">
       <div class="header-content">
         <div class="brand-section">
-          <button v-if="isMobile" class="hamburger-btn" @click="toggleSidebar" aria-label="Toggle menu">
+          <button v-if="isMobile" class="hamburger-btn" @click="toggleSidebar" aria-label="切换菜单">
             <span class="hamburger-icon">&#9776;</span>
           </button>
           <div class="logo-wrapper">
@@ -11,10 +11,21 @@
           </div>
           <span class="divider">/</span>
           <span class="brand-name">frp</span>
-          <span class="badge">Client</span>
+          <span class="badge">客户端</span>
         </div>
 
         <div class="header-controls">
+          <button
+            class="connection-btn"
+            :class="{ connected: connStore.connected }"
+            @click="connDialogVisible = true"
+            :title="connStore.connected ? connStore.baseUrl : '配置连接'"
+          >
+            <span class="conn-dot" :class="{ active: connStore.connected }" />
+            <span class="conn-text">{{
+              connStore.connected ? connStore.host : '连接'
+            }}</span>
+          </button>
           <a
             class="github-link"
             href="https://github.com/fatedier/frp"
@@ -50,7 +61,7 @@
             :class="{ active: route.path.startsWith('/proxies') }"
             @click="closeSidebar"
           >
-            Proxies
+            代理
           </router-link>
           <router-link
             to="/visitors"
@@ -58,7 +69,7 @@
             :class="{ active: route.path.startsWith('/visitors') }"
             @click="closeSidebar"
           >
-            Visitors
+            访问者
           </router-link>
           <router-link
             to="/config"
@@ -66,7 +77,7 @@
             :class="{ active: route.path === '/config' }"
             @click="closeSidebar"
           >
-            Config
+            配置
           </router-link>
         </nav>
       </aside>
@@ -75,23 +86,195 @@
         <router-view></router-view>
       </main>
     </div>
+
+    <el-dialog
+      v-model="connDialogVisible"
+      title="连接设置"
+      width="420px"
+    >
+      <el-form label-position="top">
+        <el-form-item>
+          <template #label>
+            <span class="conn-label">
+              协议
+              <el-tooltip placement="right" content="连接 frp 管理 API 时使用的协议。如果 frps 配置了 TLS 证书则选 HTTPS，否则选 HTTP。" :show-after="200">
+                <el-icon class="conn-tip-icon"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </span>
+          </template>
+          <el-select v-model="connStore.protocol" style="width: 100%">
+            <el-option label="HTTP" value="http" />
+            <el-option label="HTTPS" value="https" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <template #label>
+            <span class="conn-label">
+              主机 / IP
+              <el-tooltip placement="right" content="frps 管理面板所在服务器的地址。可以是 IP 或域名。例如你部署 frpc 的服务器 IP，或 frps 的公网域名。" :show-after="200">
+                <el-icon class="conn-tip-icon"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </span>
+          </template>
+          <el-input
+            v-model="connStore.host"
+            placeholder="例如 192.168.1.100 或 frpc.example.com"
+          />
+        </el-form-item>
+        <el-form-item>
+          <template #label>
+            <span class="conn-label">
+              端口
+              <el-tooltip placement="right" content="frps 管理面板的端口。对应 frps.toml 中 webServer.port 的值，默认 7400。如果使用反向代理（nginx）则填代理端口。" :show-after="200">
+                <el-icon class="conn-tip-icon"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </span>
+          </template>
+          <el-input v-model="connStore.port" placeholder="例如 7400" />
+        </el-form-item>
+
+        <el-divider content-position="left">
+          <span class="conn-auth-title">认证（可选）</span>
+        </el-divider>
+
+        <el-form-item>
+          <template #label>
+            <span class="conn-label">
+              用户名
+              <el-tooltip placement="right" content="frps 管理面板的 Basic Auth 用户名。对应 frps.toml 中 webServer.user 的值，默认 admin。如果未设置认证则留空。" :show-after="200">
+                <el-icon class="conn-tip-icon"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </span>
+          </template>
+          <el-input v-model="connStore.username" placeholder="admin" />
+        </el-form-item>
+        <el-form-item>
+          <template #label>
+            <span class="conn-label">
+              密码
+              <el-tooltip placement="right" content="frps 管理面板的 Basic Auth 密码。对应 frps.toml 中 webServer.password 的值。如果未设置认证则留空。" :show-after="200">
+                <el-icon class="conn-tip-icon"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </span>
+          </template>
+          <el-input v-model="connStore.password" type="password" show-password placeholder="密码" />
+        </el-form-item>
+
+        <div v-if="connStore.baseUrl" class="conn-preview">
+          <span class="conn-preview-label">预览</span>
+          <code class="conn-preview-url">{{ connStore.baseUrl }}</code>
+        </div>
+
+        <div class="conn-test-section">
+          <el-button
+            :disabled="!connStore.host"
+            :loading="testLoading"
+            @click="handleTestConnection"
+          >
+            测试连接
+          </el-button>
+          <span v-if="testResult === 'success'" class="conn-test-msg success">
+            已连接
+          </span>
+          <span v-else-if="testResult === 'auth'" class="conn-test-msg auth">
+            {{ testMsg }}
+          </span>
+          <span v-else-if="testResult === 'fail'" class="conn-test-msg fail">
+            {{ testMsg }}
+          </span>
+        </div>
+      </el-form>
+
+      <template #footer>
+        <el-button
+          v-if="connStore.connected"
+          @click="handleDisconnect"
+          type="danger"
+          plain
+        >
+          断开连接
+        </el-button>
+        <el-button @click="connDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveConnection">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDark } from '@vueuse/core'
-import { Moon, Sunny } from '@element-plus/icons-vue'
+import { Moon, Sunny, QuestionFilled } from '@element-plus/icons-vue'
 import GitHubIcon from './assets/icons/github.svg?component'
 import LogoIcon from './assets/icons/logo.svg?component'
 import { useResponsive } from './composables/useResponsive'
+import { useConnectionStore } from './stores/connection'
 
 const route = useRoute()
 const isDark = useDark()
 const { isMobile } = useResponsive()
+const connStore = useConnectionStore()
 
 const sidebarOpen = ref(false)
+const connDialogVisible = ref(false)
+const testLoading = ref(false)
+const testResult = ref<'success' | 'auth' | 'fail' | null>(null)
+const testMsg = ref('')
+
+const handleDisconnect = () => {
+  connStore.disconnect()
+  testResult.value = null
+  testMsg.value = ''
+  connDialogVisible.value = false
+}
+
+const handleSaveConnection = () => {
+  connStore.save()
+  connStore.syncProxyTarget()
+  testResult.value = null
+  testMsg.value = ''
+  connDialogVisible.value = false
+}
+
+const handleTestConnection = async () => {
+  testLoading.value = true
+  testResult.value = null
+  testMsg.value = ''
+
+  const headers: Record<string, string> = {}
+  if (connStore.authHeader) {
+    headers['Authorization'] = connStore.authHeader
+  }
+  if (connStore.baseUrl) {
+    headers['X-Frpc-Target'] = connStore.baseUrl
+  }
+
+  try {
+    const res = await fetch('/api/status', {
+      signal: AbortSignal.timeout(5000),
+      headers,
+    })
+    if (res.status === 401 || res.status === 403) {
+      testResult.value = 'auth'
+      testMsg.value = '可达（需要认证）'
+    } else if (!res.ok) {
+      testResult.value = 'fail'
+      testMsg.value = `HTTP ${res.status}`
+    } else {
+      testResult.value = 'success'
+    }
+  } catch (err: any) {
+    testResult.value = 'fail'
+    testMsg.value = err.name === 'TimeoutError'
+      ? '连接超时'
+      : (err.message || '连接失败')
+  } finally {
+    testLoading.value = false
+  }
+}
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
@@ -105,6 +288,13 @@ const closeSidebar = () => {
 watch(() => route.path, () => {
   if (isMobile.value) {
     closeSidebar()
+  }
+})
+
+// Auto-open connection dialog on first visit if not configured
+onMounted(() => {
+  if (!connStore.connected) {
+    connDialogVisible.value = true
   }
 })
 </script>
@@ -194,6 +384,119 @@ html, body {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.connection-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-sm;
+  background: $color-bg-primary;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-bg-hover;
+    color: $color-text-primary;
+    border-color: $color-border;
+  }
+
+  &.connected {
+    color: $color-text-primary;
+    border-color: $color-text-light;
+  }
+}
+
+.conn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $color-text-light;
+  flex-shrink: 0;
+
+  &.active {
+    background: #67c23a;
+  }
+}
+
+.conn-text {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conn-preview {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 10px 12px;
+  background: $color-bg-hover;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}
+
+.conn-preview-label {
+  color: $color-text-muted;
+  flex-shrink: 0;
+}
+
+.conn-preview-url {
+  color: $color-text-primary;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: $font-size-sm;
+  word-break: break-all;
+}
+
+.conn-test-section {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-top: $spacing-sm;
+}
+
+.conn-test-msg {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &.success {
+    color: #67c23a;
+  }
+
+  &.auth {
+    color: #e6a23c;
+  }
+
+  &.fail {
+    color: #f56c6c;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.conn-auth-title {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+}
+
+.conn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.conn-tip-icon {
+  font-size: 13px;
+  color: $color-text-light;
+  cursor: help;
+  &:hover { color: $color-text-secondary; }
 }
 
 .github-link {

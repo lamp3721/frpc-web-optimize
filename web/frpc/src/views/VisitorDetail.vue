@@ -3,7 +3,7 @@
     <!-- Fixed Header -->
     <div class="detail-top">
       <nav class="breadcrumb">
-        <router-link to="/visitors" class="breadcrumb-link">Visitors</router-link>
+        <router-link to="/visitors" class="breadcrumb-link">访问者</router-link>
         <span class="breadcrumb-sep">&rsaquo;</span>
         <span class="breadcrumb-current">{{ visitorName }}</span>
       </nav>
@@ -12,11 +12,11 @@
         <div class="detail-header">
           <div>
             <h2 class="detail-title">{{ visitor.name }}</h2>
-            <p class="header-subtitle">Type: {{ visitor.type.toUpperCase() }}</p>
+            <p class="header-subtitle">类型： {{ visitor.type.toUpperCase() }}</p>
           </div>
           <div v-if="isStore" class="header-actions">
             <ActionButton variant="outline" size="small" @click="handleEdit">
-              Edit
+              编辑
             </ActionButton>
           </div>
         </div>
@@ -24,10 +24,10 @@
     </div>
 
     <div v-if="notFound" class="not-found">
-      <p class="empty-text">Visitor not found</p>
-      <p class="empty-hint">The visitor "{{ visitorName }}" does not exist.</p>
+      <p class="empty-text">未找到访问者</p>
+      <p class="empty-hint">访问者 "{{ visitorName }}" 不存在。</p>
       <ActionButton variant="outline" @click="router.push('/visitors')">
-        Back to Visitors
+        返回访问者列表
       </ActionButton>
     </div>
 
@@ -80,7 +80,7 @@ onMounted(async () => {
       notFound.value = true
     } else {
       notFound.value = true
-      ElMessage.error('Failed to load visitor: ' + err.message)
+      ElMessage.error('加载访问者失败：' + err.message)
     }
   } finally {
     loading.value = false

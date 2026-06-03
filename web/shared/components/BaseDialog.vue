@@ -8,6 +8,7 @@
     :close-on-press-escape="closeOnPressEscape"
     :append-to-body="appendToBody"
     :top="dialogTop"
+    :align-center="alignCenter"
     :fullscreen="isMobile"
     class="base-dialog"
     :class="{ 'mobile-dialog': isMobile }"
@@ -32,6 +33,7 @@ const props = withDefaults(
     closeOnPressEscape?: boolean
     appendToBody?: boolean
     top?: string
+    alignCenter?: boolean
     isMobile?: boolean
   }>(),
   {
@@ -41,6 +43,7 @@ const props = withDefaults(
     closeOnPressEscape: true,
     appendToBody: false,
     top: '15vh',
+    alignCenter: false,
     isMobile: false,
   },
 )

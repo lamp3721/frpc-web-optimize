@@ -11,12 +11,38 @@ class HTTPError extends Error {
   }
 }
 
+let _authHeader = ''
+let _frpcTarget = ''
+
+export function setAuthHeader(header: string) {
+  _authHeader = header
+}
+
+export function setFrpcTarget(target: string) {
+  _frpcTarget = target
+}
+
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const defaultOptions: RequestInit = {
+  const mergedOptions: RequestInit = {
     credentials: 'include',
+    ...options,
   }
 
-  const response = await fetch(url, { ...defaultOptions, ...options })
+  const extraHeaders: Record<string, string> = {}
+  if (_authHeader) {
+    extraHeaders['Authorization'] = _authHeader
+  }
+  if (_frpcTarget) {
+    extraHeaders['X-Frpc-Target'] = _frpcTarget
+  }
+  if (Object.keys(extraHeaders).length > 0) {
+    mergedOptions.headers = {
+      ...(mergedOptions.headers as Record<string, string>),
+      ...extraHeaders,
+    }
+  }
+
+  const response = await fetch(url, mergedOptions)
 
   if (!response.ok) {
     throw new HTTPError(

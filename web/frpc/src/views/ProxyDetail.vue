@@ -3,7 +3,7 @@
     <!-- Fixed Header -->
     <div class="detail-top">
       <nav class="breadcrumb">
-        <router-link :to="isStore ? '/proxies?tab=store' : '/proxies'" class="breadcrumb-link">Proxies</router-link>
+        <router-link :to="isStore ? '/proxies?tab=store' : '/proxies'" class="breadcrumb-link">代理</router-link>
         <span class="breadcrumb-sep">&rsaquo;</span>
         <span class="breadcrumb-current">{{ proxyName }}</span>
       </nav>
@@ -19,13 +19,13 @@
               </span>
             </div>
             <p class="header-subtitle">
-              Source: {{ displaySource }} &middot; Type:
+              来源： {{ displaySource }} &middot; 类型：
               {{ proxy.type.toUpperCase() }}
             </p>
           </div>
           <div v-if="isStore" class="header-actions">
             <ActionButton variant="outline" size="small" @click="handleEdit">
-              Edit
+              编辑
             </ActionButton>
           </div>
         </div>
@@ -34,10 +34,10 @@
 
     <!-- Scrollable Content -->
     <div v-if="notFound" class="not-found">
-      <p class="empty-text">Proxy not found</p>
-      <p class="empty-hint">The proxy "{{ proxyName }}" does not exist.</p>
+      <p class="empty-text">未找到代理</p>
+      <p class="empty-hint">代理 "{{ proxyName }}" 不存在。</p>
       <ActionButton variant="outline" @click="router.push('/proxies')">
-        Back to Proxies
+        返回代理列表
       </ActionButton>
     </div>
 
@@ -46,7 +46,7 @@
       <div v-if="proxy.err" class="error-banner">
         <el-icon class="error-icon"><Warning /></el-icon>
         <div>
-          <div class="error-title">Connection Error</div>
+          <div class="error-title">连接错误</div>
           <div class="error-message">{{ proxy.err }}</div>
         </div>
       </div>
@@ -131,7 +131,7 @@ onMounted(async () => {
       notFound.value = true
     }
   } catch (err: any) {
-    ElMessage.error('Failed to load proxy: ' + err.message)
+    ElMessage.error('加载代理失败：' + err.message)
   } finally {
     loading.value = false
   }

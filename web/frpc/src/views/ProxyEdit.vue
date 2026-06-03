@@ -3,14 +3,14 @@
     <!-- Header with breadcrumb and actions -->
     <div class="edit-header">
       <nav class="breadcrumb">
-        <router-link to="/proxies?tab=store" class="breadcrumb-item">Proxies</router-link>
+        <router-link to="/proxies?tab=store" class="breadcrumb-item">代理</router-link>
         <span class="breadcrumb-separator">&rsaquo;</span>
-        <span class="breadcrumb-current">{{ isEditing ? 'Edit Proxy' : 'New Proxy' }}</span>
+        <span class="breadcrumb-current">{{ isEditing ? '编辑代理' : '新建代理' }}</span>
       </nav>
       <div class="header-actions">
-        <ActionButton variant="outline" size="small" @click="goBack">Cancel</ActionButton>
+        <ActionButton variant="outline" size="small" @click="goBack">取消</ActionButton>
         <ActionButton size="small" :loading="saving" @click="handleSave">
-          {{ isEditing ? 'Update' : 'Create' }}
+          {{ isEditing ? '更新' : '创建' }}
         </ActionButton>
       </div>
     </div>
@@ -29,8 +29,8 @@
 
     <ConfirmDialog
       v-model="leaveDialogVisible"
-      title="Unsaved Changes"
-      message="You have unsaved changes. Are you sure you want to leave?"
+      title="未保存的更改"
+      message="您有未保存的更改。确定要离开吗？"
       :is-mobile="isMobile"
       @confirm="handleLeaveConfirm"
       @cancel="handleLeaveCancel"
@@ -72,15 +72,15 @@ const trackChanges = ref(false)
 
 const rules: FormRules = {
   name: [
-    { required: true, message: 'Name is required', trigger: 'blur' },
-    { min: 1, max: 50, message: 'Length should be 1 to 50', trigger: 'blur' },
+    { required: true, message: '名称为必填项', trigger: 'blur' },
+    { min: 1, max: 50, message: '长度应为 1 到 50', trigger: 'blur' },
   ],
-  type: [{ required: true, message: 'Type is required', trigger: 'change' }],
+  type: [{ required: true, message: '类型为必填项', trigger: 'change' }],
   localPort: [
     {
       validator: (_rule, value, callback) => {
         if (!form.value.pluginType && value == null) {
-          callback(new Error('Local port is required'))
+          callback(new Error('本地端口为必填项'))
         } else {
           callback()
         }
@@ -96,7 +96,7 @@ const rules: FormRules = {
           (!value || value.length === 0) &&
           !form.value.subdomain
         ) {
-          callback(new Error('Custom domains or subdomain is required'))
+          callback(new Error('需要自定义域名或子域名'))
         } else {
           callback()
         }
@@ -108,7 +108,7 @@ const rules: FormRules = {
     {
       validator: (_rule, value, callback) => {
         if (form.value.healthCheckType === 'http' && !value) {
-          callback(new Error('Path is required for HTTP health check'))
+          callback(new Error('HTTP 健康检查需要路径'))
         } else {
           callback()
         }
@@ -166,7 +166,7 @@ const loadProxy = async () => {
     form.value = storeProxyToForm(res)
     await nextTick()
   } catch (err: any) {
-    ElMessage.error('Failed to load proxy: ' + err.message)
+    ElMessage.error('加载代理失败：' + err.message)
     router.push('/proxies?tab=store')
   } finally {
     pageLoading.value = false
@@ -182,7 +182,7 @@ const handleSave = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElMessage.warning('Please fix the form errors')
+    ElMessage.warning('请修正表单错误')
     return
   }
 
@@ -191,15 +191,15 @@ const handleSave = async () => {
     const data = formToStoreProxy(form.value)
     if (isEditing.value) {
       await proxyStore.updateProxy(form.value.name, data)
-      ElMessage.success('Proxy updated')
+      ElMessage.success('代理已更新')
     } else {
       await proxyStore.createProxy(data)
-      ElMessage.success('Proxy created')
+      ElMessage.success('代理已创建')
     }
     formSaved.value = true
     router.push('/proxies?tab=store')
   } catch (err: any) {
-    ElMessage.error('Operation failed: ' + (err.message || 'Unknown error'))
+    ElMessage.error('操作失败：' + (err.message || '未知错误'))
   } finally {
     saving.value = false
   }
@@ -269,7 +269,7 @@ watch(
 }
 
 .breadcrumb-item {
-  color: var(--text-secondary);
+  color: $color-text-secondary;
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -283,7 +283,7 @@ watch(
 }
 
 .breadcrumb-current {
-  color: var(--text-primary);
+  color: $color-text-primary;
   font-weight: 500;
 }
 
