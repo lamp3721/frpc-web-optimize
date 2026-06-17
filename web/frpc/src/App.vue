@@ -146,7 +146,7 @@
               </el-tooltip>
             </span>
           </template>
-          <el-input v-model="connStore.username" placeholder="admin" />
+          <el-input v-model="connStore.username" placeholder="用户名" />
         </el-form-item>
         <el-form-item>
           <template #label>

@@ -295,7 +295,7 @@
               </el-form-item>
               <el-form-item>
                 <template #label><span class="opt-label">用户名</span><span class="opt-default">默认 admin</span></template>
-                <el-input v-model="form.user" placeholder="admin" @input="onFormChange" />
+                <el-input v-model="form.user" placeholder="用户名" @input="onFormChange" />
               </el-form-item>
               <el-form-item>
                 <template #label><span class="opt-label">密码</span></template>
@@ -696,7 +696,7 @@ type ModePreset = Partial<typeof form>
 const modePresets: Record<string, ModePreset> = {
   tcpMux: { tcpMux: true, poolCount: '', dialServerKeepalive: '', dialServerTimeout: '', tlsEnable: false },
   tcpNoMux: { tcpMux: false, dialServerKeepalive: '60', dialServerTimeout: '', poolCount: '5', tlsEnable: false },
-  quic: { tcpMux: false, poolCount: '3', tlsEnable: true, quicKeepalivePeriod: '10', quicMaxIdleTimeout: '30', quicMaxIncomingStreams: '' },
+  quic: { tcpMux: false, poolCount: '3', tlsEnable: true },
 }
 
 const applyPreset = (mode: string) => {
