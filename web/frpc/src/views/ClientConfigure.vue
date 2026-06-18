@@ -694,9 +694,9 @@ const syncing = false
 type ModePreset = Partial<typeof form>
 
 const modePresets: Record<string, ModePreset> = {
-  tcpMux: { tcpMux: true, poolCount: '', dialServerKeepalive: '', dialServerTimeout: '', tlsEnable: false },
-  tcpNoMux: { tcpMux: false, dialServerKeepalive: '60', dialServerTimeout: '', poolCount: '5', tlsEnable: false },
-  quic: { tcpMux: false, poolCount: '3', tlsEnable: true },
+  tcpMux: { tcpMux: true, tlsEnable: false },
+  tcpNoMux: { tcpMux: false, tlsEnable: false },
+  quic: { tcpMux: false, tlsEnable: true },
 }
 
 const applyPreset = (mode: string) => {
