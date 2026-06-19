@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div class="split-layout">
+    <div class="split-layout" v-loading="pageLoading">
       <div class="form-main">
         <div class="form-panel">
         <!-- 连接模式选择 -->
@@ -568,6 +568,7 @@ const confirmDeleteProxy = () => {
 const proxyToDelete = ref(-1)
 const deleteProxyVisible = ref(false)
 const showMoreTypes = ref(false)
+const pageLoading = ref(true)
 
 const portPlaceholder = computed(() => {
   if (newProxy.type === 'http') return 'e.g. 80'
@@ -882,7 +883,11 @@ const onFormChange = () => { rebuildPreview() }
 
 const fetchData = async () => {
   try {
-    if (!connStore.connected) return
+    if (!connStore.connected) {
+      pageLoading.value = false
+      return
+    }
+    pageLoading.value = true
     await clientStore.fetchConfig()
     const parsed = parseToml(clientStore.config)
     applyParsedToForm(parsed)
@@ -891,6 +896,8 @@ const fetchData = async () => {
     rebuildPreview()
   } catch (err: any) {
     ElMessage({ showClose: true, message: '获取配置失败：' + err.message, type: 'warning' })
+  } finally {
+    pageLoading.value = false
   }
 }
 
