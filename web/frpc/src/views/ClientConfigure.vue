@@ -28,7 +28,7 @@
             >
               <div class="mode-name">{{ m.label }}</div>
               <div class="mode-desc">{{ m.desc }}</div>
-              <el-tooltip placement="bottom" :content="m.tooltip" :show-after="300">
+              <el-tooltip placement="bottom" :content="m.tooltip" :show-after="0">
                 <el-icon class="mode-tip-icon"><QuestionFilled /></el-icon>
               </el-tooltip>
             </div>
@@ -49,7 +49,9 @@
           <h3 class="section-title">基本连接</h3>
           <div class="form-grid">
             <el-form-item :class="{ 'field-key': isKeyField('serverAddr') }">
-              <template #label><TipLabel text="服务端地址" :tip="tips.serverAddr" /></template>
+              <template #label>
+                <span class="label-with-tip">服务端地址<el-tooltip placement="right" :content="tips.serverAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
               <el-input v-model="form.serverAddr" placeholder="必填，frps 地址" @input="onFormChange" />
             </el-form-item>
           </div>
@@ -60,7 +62,7 @@
           <h3 class="section-title">认证</h3>
           <div class="form-grid">
             <el-form-item :class="{ 'field-key': isKeyField('authToken') }">
-              <template #label><TipLabel text="认证令牌" :tip="tips.authToken" /></template>
+              <template #label>                <span class="label-with-tip">认证令牌<el-tooltip placement="right" :content="tips.authToken" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
               <el-input v-model="form.authToken" placeholder="必填，与服务端一致" @input="onFormChange" />
             </el-form-item>
           </div>
@@ -71,11 +73,12 @@
           <h3 class="section-title">传输</h3>
           <div class="form-grid">
             <el-form-item v-if="connMode === 'quic'">
-              <template #label><TipLabel text="协议" :tip="tips.protocol" /></template>
+              <template #label><span class="label-with-tip">协议<el-tooltip placement="right" :content="tips.protocol" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
               <el-input value="quic" disabled />
             </el-form-item>
             <el-form-item v-if="connMode !== 'quic'" :class="{ 'field-key': isKeyField('tcpMux') }">
-              <template #label><TipLabel text="TCP Mux" :tip="tips.tcpMux" /></template>
+              <template #label>                <span class="label-with-tip">TCP Mux<el-tooltip placement="right" :content="tips.tcpMux" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
               <el-switch
                 v-model="form.tcpMux"
                 :disabled="connMode === 'tcpMux' || connMode === 'tcpNoMux'"
@@ -91,11 +94,11 @@
               v-if="connMode === 'tcpNoMux' || (!form.tcpMux && connMode !== 'tcpMux')"
               :class="{ 'field-key': isKeyField('dialServerKeepalive') }"
             >
-              <template #label><TipLabel text="TCP 保活间隔" :tip="tips.tcpKeepalive" /></template>
+              <template #label>                <span class="label-with-tip">TCP 保活间隔<el-tooltip placement="right" :content="tips.tcpKeepalive" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
               <el-input v-model="form.dialServerKeepalive" placeholder="秒，默认 7200 需调小" @input="onFormChange" />
             </el-form-item>
             <el-form-item v-if="connMode === 'tcpNoMux'" :class="{ 'field-key': isKeyField('poolCount') }">
-              <template #label><TipLabel text="连接池大小" :tip="tips.poolCount" /></template>
+              <template #label>                <span class="label-with-tip">连接池大小<el-tooltip placement="right" :content="tips.poolCount" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
               <el-input v-model="form.poolCount" :placeholder="poolCountHint" @input="onFormChange" />
             </el-form-item>
 
@@ -992,26 +995,6 @@ const doUpload = async () => {
 }
 
 fetchData()
-</script>
-
-<script lang="ts">
-import { defineComponent, h } from 'vue'
-import { ElTooltip, ElIcon } from 'element-plus'
-
-export const TipLabel = defineComponent({
-  props: { text: String, tip: String },
-  setup(props) {
-    return () => {
-      if (!props.tip) return h('span', props.text)
-      return h('span', { class: 'label-with-tip' }, [
-        props.text,
-        h(ElTooltip, { placement: 'right', content: props.tip, 'show-after': 300, rawContent: true }, {
-          content: () => h(ElIcon, { class: 'tip-icon', size: 14 }, () => h(QuestionFilled)),
-        }),
-      ])
-    }
-  },
-})
 </script>
 
 <style scoped lang="scss">
