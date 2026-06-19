@@ -1482,6 +1482,7 @@ export const TipLabel = defineComponent({
   color: $color-text-light;
   cursor: help;
   font-size: 13px;
+  margin-left: 3px;
   &:hover { color: $color-text-secondary; }
 }
 
