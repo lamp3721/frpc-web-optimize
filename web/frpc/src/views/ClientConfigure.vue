@@ -266,8 +266,9 @@
                 <template #label><span class="opt-label">禁用自定义首字节</span><span class="opt-default">默认 true</span></template>
                 <el-switch v-model="form.tlsDisableCustomFirstByte" @change="onFormChange" />
               </el-form-item>
-              <template v-if="form.tlsEnable || connMode === 'quic'">
-                <el-form-item>
+                <template v-if="form.tlsEnable || connMode === 'quic'">
+                  <p class="opt-hint">证书和密钥仅 mTLS 双向认证时需要，普通场景留空即可</p>
+                  <el-form-item>
                   <template #label><span class="opt-label">证书文件</span></template>
                   <el-input v-model="form.tlsCertFile" placeholder="client.crt" @input="onFormChange" />
                 </el-form-item>
@@ -1121,6 +1122,12 @@ export const TipLabel = defineComponent({
 .opt-label {
   font-size: $font-size-sm;
   color: $color-text-secondary;
+}
+
+.opt-hint {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  margin: 0 0 4px;
 }
 
 .section-title-row-with-btn {
