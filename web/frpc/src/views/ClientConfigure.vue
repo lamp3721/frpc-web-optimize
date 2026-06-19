@@ -839,7 +839,7 @@ const applyParsedToForm = (cfg: FrpcConfig) => {
     form.poolCount = getVal(tr, 'poolCount') != null ? String(getVal(tr, 'poolCount')) : ''
     form.wireProtocol = getVal(tr, 'wireProtocol') || ''
 
-    form.tlsEnable = getVal(tr, 'tls.enable') === true || getVal(tr, 'protocol') === 'quic'
+    form.tlsEnable = getVal(tr, 'tls.enable') !== false || getVal(tr, 'protocol') === 'quic'
     form.tlsDisableCustomFirstByte = getVal(tr, 'tls.disableCustomTLSFirstByte') !== false
     form.tlsCertFile = getVal(tr, 'tls.certFile') || ''
     form.tlsKeyFile = getVal(tr, 'tls.keyFile') || ''
