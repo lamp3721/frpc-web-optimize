@@ -410,7 +410,7 @@
             </template>
             <StringListEditor v-model="newProxy.customDomains" placeholder="example.com" />
           </el-form-item>
-          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'https'">
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'https' || newProxy.type === 'tcpmux'">
             <template #label>
               <span class="opt-label">
                 子域名
@@ -435,6 +435,13 @@
           <el-form-item v-if="newProxy.type === 'stcp' || newProxy.type === 'sudp' || newProxy.type === 'xtcp'">
             <template #label><span class="opt-label">密钥<el-tooltip content="预共享密钥，访问者必须提供相同密钥才能建立连接" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model="newProxy.secretKey" type="password" show-password placeholder="共享密钥" />
+          </el-form-item>
+          <el-form-item v-if="newProxy.type === 'tcpmux'">
+            <template #label><span class="opt-label">复用器<el-tooltip content="TCPMux 模式使用的复用协议，目前仅支持 httpconnect" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+            <el-select v-model="newProxy.multiplexer" style="width:100%">
+              <el-option label="httpconnect（默认）" value="" />
+              <el-option label="httpconnect" value="httpconnect" />
+            </el-select>
           </el-form-item>
         </div>
         <div v-if="newProxy.type !== 'https'" class="proxy-dialog-divider"></div>
@@ -658,6 +665,7 @@ const newProxy = reactive({
   httpUser: '',
   httpPassword: '',
   secretKey: '',
+  multiplexer: '',
   enabled: true,
   useCompression: false,
   useEncryption: false,
@@ -678,6 +686,7 @@ const openProxyDialog = () => {
   newProxy.httpUser = ''
   newProxy.httpPassword = ''
   newProxy.secretKey = ''
+  newProxy.multiplexer = ''
   newProxy.enabled = true
   newProxy.useCompression = false
   newProxy.useEncryption = false
@@ -699,6 +708,7 @@ const editProxy = (index: number) => {
   newProxy.httpUser = p.httpUser || ''
   newProxy.httpPassword = p.httpPassword || ''
   newProxy.secretKey = p.secretKey || ''
+  newProxy.multiplexer = p.multiplexer || ''
   newProxy.enabled = p.enabled !== false
   newProxy.useCompression = p['transport.useCompression'] === true
   newProxy.useEncryption = p['transport.useEncryption'] === true
@@ -727,6 +737,7 @@ const saveProxy = () => {
   if (newProxy.httpUser) proxy.httpUser = newProxy.httpUser
   if (newProxy.httpPassword) proxy.httpPassword = newProxy.httpPassword
   if (newProxy.secretKey) proxy.secretKey = newProxy.secretKey
+  if (newProxy.multiplexer) proxy.multiplexer = newProxy.multiplexer
 
   if (editingIndex.value >= 0) {
     parsed.proxies[editingIndex.value] = proxy
