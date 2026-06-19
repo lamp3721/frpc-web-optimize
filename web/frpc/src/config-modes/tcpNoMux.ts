@@ -31,7 +31,7 @@ export const OPTIONAL: Record<string, { effective: boolean; note?: string }> = {
   'transport.tls.keyFile':         { effective: true, note: 'mTLS 场景才需要' },
   // 以下在本模式中不生效
   'transport.tcpMuxKeepaliveInterval': { effective: false, note: 'tcpMux=false，yamux 未启用' },
-  'transport.wireProtocol':        { effective: false },
+  'transport.wireProtocol':        { effective: true, note: 'Go 在所有模式中都读取此字段' },
   'transport.quic.keepalivePeriod':  { effective: false },
   'transport.quic.maxIdleTimeout': { effective: false },
   'transport.quic.maxIncomingStreams': { effective: false },

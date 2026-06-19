@@ -31,7 +31,7 @@ export const OPTIONAL: Record<string, { effective: boolean; note?: string }> = {
   'transport.tcpMuxKeepaliveInterval': { effective: false },
   'transport.dialServerKeepalive':  { effective: false, note: 'UDP 无 TCP keepalive' },
   'transport.dialServerTimeout':    { effective: false },
-  'transport.wireProtocol':         { effective: false },
+  'transport.wireProtocol':         { effective: true, note: 'Go 在所有模式中都读取此字段' },
   'transport.heartbeatInterval':    { effective: false, note: 'QUIC PING 帧替代应用层心跳' },
   'transport.heartbeatTimeout':     { effective: false },
   'webServer.port':                 { effective: true },
@@ -40,6 +40,7 @@ export const OPTIONAL: Record<string, { effective: boolean; note?: string }> = {
 }
 
 export const PRESET: Record<string, any> = {
+  'transport.protocol': 'quic',
   'transport.tcpMux': false,
 }
 
