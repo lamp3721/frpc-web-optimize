@@ -431,6 +431,7 @@ import ConfirmDialog from '@shared/components/ConfirmDialog.vue'
 import StringListEditor from '../components/StringListEditor.vue'
 import { useResponsive } from '../composables/useResponsive'
 import { parseToml, serializeToml } from '../utils/toml'
+import { CONFIG_DEFAULTS } from '../utils/defaults'
 import type { FrpcConfig } from '../utils/toml'
 
 const { isMobile } = useResponsive()
@@ -620,6 +621,19 @@ const newProxy = reactive({
 })
 
 const PROXY_TYPES = ['tcp', 'udp', 'http', 'https', 'tcpmux', 'stcp', 'sudp', 'xtcp']
+
+const cfgVal = (cfg: FrpcConfig, dotKey: string): any => {
+  const parts = dotKey.split('.')
+  if (parts.length === 1) {
+    const v = getVal(cfg.roots, parts[0])
+    return v !== undefined ? v : CONFIG_DEFAULTS[dotKey]
+  }
+  const sectionName = parts[0]
+  const subKey = parts.slice(1).join('.')
+  const section = getSection(cfg.sections, sectionName)
+  const v = getVal(section, subKey)
+  return v !== undefined ? v : CONFIG_DEFAULTS[dotKey]
+}
 
 const openProxyDialog = () => {
   editingIndex.value = -1
@@ -818,47 +832,43 @@ const formToConfig = (): FrpcConfig => {
 }
 
 const applyParsedToForm = (cfg: FrpcConfig) => {
-  form.serverAddr = getVal(cfg.roots, 'serverAddr') || ''
-  form.serverPort = getVal(cfg.roots, 'serverPort') != null ? String(getVal(cfg.roots, 'serverPort')) : ''
-
-  const auth = getSection(cfg.sections, 'auth')
-  form.authToken = getVal(auth, 'token') || ''
+  form.serverAddr = cfgVal(cfg, 'serverAddr') || ''
+  form.serverPort = cfgVal(cfg, 'serverPort') != null ? String(cfgVal(cfg, 'serverPort')) : ''
+  form.authToken = cfgVal(cfg, 'auth.token') || ''
 
   const tr = getSection(cfg.sections, 'transport')
   if (tr) {
-    if (getVal(tr, 'protocol') === 'quic') connMode.value = 'quic'
-    else if (getVal(tr, 'tcpMux') === false) connMode.value = 'tcpNoMux'
+    if (cfgVal(cfg, 'transport.protocol') === 'quic') connMode.value = 'quic'
+    else if (cfgVal(cfg, 'transport.tcpMux') === false) connMode.value = 'tcpNoMux'
     else connMode.value = 'tcpMux'
 
-    form.tcpMux = getVal(tr, 'tcpMux') !== false
-    form.tcpMuxKeepaliveInterval = getVal(tr, 'tcpMuxKeepaliveInterval') != null ? String(getVal(tr, 'tcpMuxKeepaliveInterval')) : ''
-    form.dialServerKeepalive = getVal(tr, 'dialServerKeepalive') != null ? String(getVal(tr, 'dialServerKeepalive')) : ''
-    form.dialServerTimeout = getVal(tr, 'dialServerTimeout') != null ? String(getVal(tr, 'dialServerTimeout')) : ''
-    form.heartbeatInterval = getVal(tr, 'heartbeatInterval') != null ? String(getVal(tr, 'heartbeatInterval')) : ''
-    form.heartbeatTimeout = getVal(tr, 'heartbeatTimeout') != null ? String(getVal(tr, 'heartbeatTimeout')) : ''
-    form.poolCount = getVal(tr, 'poolCount') != null ? String(getVal(tr, 'poolCount')) : ''
-    form.wireProtocol = getVal(tr, 'wireProtocol') || ''
+    form.tcpMux = cfgVal(cfg, 'transport.tcpMux') !== false
+    form.tcpMuxKeepaliveInterval = cfgVal(cfg, 'transport.tcpMuxKeepaliveInterval') != null ? String(cfgVal(cfg, 'transport.tcpMuxKeepaliveInterval')) : ''
+    form.dialServerKeepalive = cfgVal(cfg, 'transport.dialServerKeepalive') != null ? String(cfgVal(cfg, 'transport.dialServerKeepalive')) : ''
+    form.dialServerTimeout = cfgVal(cfg, 'transport.dialServerTimeout') != null ? String(cfgVal(cfg, 'transport.dialServerTimeout')) : ''
+    form.heartbeatInterval = cfgVal(cfg, 'transport.heartbeatInterval') != null ? String(cfgVal(cfg, 'transport.heartbeatInterval')) : ''
+    form.heartbeatTimeout = cfgVal(cfg, 'transport.heartbeatTimeout') != null ? String(cfgVal(cfg, 'transport.heartbeatTimeout')) : ''
+    form.poolCount = cfgVal(cfg, 'transport.poolCount') != null ? String(cfgVal(cfg, 'transport.poolCount')) : ''
+    form.wireProtocol = cfgVal(cfg, 'transport.wireProtocol') || ''
 
-    form.tlsEnable = getVal(tr, 'tls.enable') !== false || getVal(tr, 'protocol') === 'quic'
-    form.tlsDisableCustomFirstByte = getVal(tr, 'tls.disableCustomTLSFirstByte') !== false
-    form.tlsCertFile = getVal(tr, 'tls.certFile') || ''
-    form.tlsKeyFile = getVal(tr, 'tls.keyFile') || ''
-    form.tlsServerName = getVal(tr, 'tls.serverName') || ''
+    form.tlsEnable = cfgVal(cfg, 'transport.tls.enable') !== false || cfgVal(cfg, 'transport.protocol') === 'quic'
+    form.tlsDisableCustomFirstByte = cfgVal(cfg, 'transport.tls.disableCustomTLSFirstByte') !== false
+    form.tlsCertFile = cfgVal(cfg, 'transport.tls.certFile') || ''
+    form.tlsKeyFile = cfgVal(cfg, 'transport.tls.keyFile') || ''
+    form.tlsServerName = cfgVal(cfg, 'transport.tls.serverName') || ''
 
-    form.quicKeepalivePeriod = getVal(tr, 'quic.keepalivePeriod') != null ? String(getVal(tr, 'quic.keepalivePeriod')) : ''
-    form.quicMaxIdleTimeout = getVal(tr, 'quic.maxIdleTimeout') != null ? String(getVal(tr, 'quic.maxIdleTimeout')) : ''
-    form.quicMaxIncomingStreams = getVal(tr, 'quic.maxIncomingStreams') != null ? String(getVal(tr, 'quic.maxIncomingStreams')) : ''
+    form.quicKeepalivePeriod = cfgVal(cfg, 'transport.quic.keepalivePeriod') != null ? String(cfgVal(cfg, 'transport.quic.keepalivePeriod')) : ''
+    form.quicMaxIdleTimeout = cfgVal(cfg, 'transport.quic.maxIdleTimeout') != null ? String(cfgVal(cfg, 'transport.quic.maxIdleTimeout')) : ''
+    form.quicMaxIncomingStreams = cfgVal(cfg, 'transport.quic.maxIncomingStreams') != null ? String(cfgVal(cfg, 'transport.quic.maxIncomingStreams')) : ''
   }
 
-  const ws = getSection(cfg.sections, 'webServer')
-  form.webPort = getVal(ws, 'port') != null ? String(getVal(ws, 'port')) : ''
-  form.user = getVal(ws, 'user') || ''
-  form.password = getVal(ws, 'password') || ''
+  form.webPort = cfgVal(cfg, 'webServer.port') != null ? String(cfgVal(cfg, 'webServer.port')) : ''
+  form.user = cfgVal(cfg, 'webServer.user') || ''
+  form.password = cfgVal(cfg, 'webServer.password') || ''
 
-  const lg = getSection(cfg.sections, 'log')
-  form.logFile = getVal(lg, 'to') || ''
-  form.logLevel = getVal(lg, 'level') || 'info'
-  form.logMaxDays = getVal(lg, 'maxDays') != null ? String(getVal(lg, 'maxDays')) : ''
+  form.logFile = cfgVal(cfg, 'log.to') || ''
+  form.logLevel = cfgVal(cfg, 'log.level') || 'info'
+  form.logMaxDays = cfgVal(cfg, 'log.maxDays') != null ? String(cfgVal(cfg, 'log.maxDays')) : ''
 }
 
 const rebuildPreview = () => {
