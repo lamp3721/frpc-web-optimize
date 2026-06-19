@@ -1498,7 +1498,7 @@ export const TipLabel = defineComponent({
 
 @include mobile {
   .configure-page { padding: $spacing-lg; overflow-y: auto; }
-  .split-layout { flex-direction: column; }
+  .split-layout { flex-direction: column; overflow-y: auto; }
   .form-panel { flex: none; overflow-y: visible; padding-right: 0; }
   .form-main { flex: none; min-width: 0; }
   .title-row { flex-direction: column; align-items: flex-start; gap: $spacing-sm; }

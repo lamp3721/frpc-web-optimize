@@ -821,6 +821,7 @@ html.dark .el-switch {
 
   #content {
     width: 100%;
+    overflow-y: auto;
   }
 
   // Select dropdown overflow prevention
