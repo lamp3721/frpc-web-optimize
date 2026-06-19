@@ -164,7 +164,7 @@
             </div>
             <div class="form-grid">
               <el-form-item>
-                <template #label><span class="opt-label">端口</span></template>
+                <template #label><span class="opt-label">端口<el-tooltip placement="right" :content="tips.serverPort" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.serverPort" placeholder="默认 7000" @input="onFormChange" />
               </el-form-item>
             </div>
@@ -178,19 +178,19 @@
               </div>
               <div class="form-grid">
                 <el-form-item>
-                  <template #label><span class="opt-label">保活间隔</span><span class="opt-default">默认 30s</span></template>
+                  <template #label><span class="opt-label">保活间隔<span class="opt-default">默认 30s</span><el-tooltip placement="right" :content="tips.tcpMuxKeepaliveInterval" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tcpMuxKeepaliveInterval" placeholder="秒，默认 30" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">TCP 保活</span><span class="opt-default">默认 7200s</span></template>
+                  <template #label><span class="opt-label">TCP 保活<span class="opt-default">默认 7200s</span><el-tooltip placement="right" :content="tips.tcpKeepalive" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerKeepalive" placeholder="秒，默认 7200" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">拨号超时</span><span class="opt-default">默认 10s</span></template>
+                  <template #label><span class="opt-label">拨号超时<span class="opt-default">默认 10s</span><el-tooltip placement="right" :content="tips.dialServerTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerTimeout" placeholder="秒，默认 10" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">协议版本</span><span class="opt-default">默认 v1</span></template>
+                  <template #label><span class="opt-label">协议版本<span class="opt-default">默认 v1</span><el-tooltip placement="right" :content="tips.wireProtocol" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-select v-model="form.wireProtocol" @change="onFormChange">
                     <el-option label="v1（默认）" value="" />
                     <el-option label="v1" value="v1" />
@@ -198,7 +198,7 @@
                   </el-select>
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">连接池大小</span><span class="opt-default">默认 1</span></template>
+                  <template #label><span class="opt-label">连接池大小<span class="opt-default">默认 1</span><el-tooltip placement="right" :content="tips.poolCount" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.poolCount" placeholder="默认 1" @input="onFormChange" />
                 </el-form-item>
               </div>
@@ -213,15 +213,15 @@
               </div>
               <div class="form-grid">
                 <el-form-item>
-                  <template #label><span class="opt-label">拨号超时</span><span class="opt-default">默认 10s</span></template>
+                  <template #label><span class="opt-label">拨号超时<span class="opt-default">默认 10s</span><el-tooltip placement="right" :content="tips.dialServerTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerTimeout" placeholder="秒，默认 10" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">心跳间隔</span><span class="opt-default">默认 30s</span></template>
+                  <template #label><span class="opt-label">心跳间隔<span class="opt-default">默认 30s</span><el-tooltip content='应用层 Ping 间隔（秒）。本模式下默认 30，自动生效。仅作用于控制连接。' placement="right" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.heartbeatInterval" placeholder="秒，默认 30" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">心跳超时</span><span class="opt-default">默认 90s</span></template>
+                  <template #label><span class="opt-label">心跳超时<span class="opt-default">默认 90s</span><el-tooltip content='应用层 Pong 超时（秒）。默认 90。超过未收到 Pong 判定控制连接断开。' placement="right" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.heartbeatTimeout" placeholder="秒，默认 90" @input="onFormChange" />
                 </el-form-item>
               </div>
@@ -236,19 +236,19 @@
               </div>
               <div class="form-grid">
                 <el-form-item>
-                  <template #label><span class="opt-label">保活间隔</span><span class="opt-default">默认 10s</span></template>
+                  <template #label><span class="opt-label">保活间隔<span class="opt-default">默认 10s</span><el-tooltip placement="right" :content="tips.quicKeepalivePeriod" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicKeepalivePeriod" placeholder="秒，默认 10" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">空闲超时</span><span class="opt-default">默认 30s</span></template>
+                  <template #label><span class="opt-label">空闲超时<span class="opt-default">默认 30s</span><el-tooltip placement="right" :content="tips.quicMaxIdleTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicMaxIdleTimeout" placeholder="秒，默认 30" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">最大并发流</span><span class="opt-default">默认 100000</span></template>
+                  <template #label><span class="opt-label">最大并发流<span class="opt-default">默认 100000</span><el-tooltip placement="right" :content="tips.quicMaxIncomingStreams" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicMaxIncomingStreams" placeholder="默认 100000" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">连接池大小</span><span class="opt-default">默认 1，QUIC 建议 3</span></template>
+                  <template #label><span class="opt-label">连接池大小<span class="opt-default">默认 1，QUIC 建议 3</span><el-tooltip placement="right" :content="tips.poolCount" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.poolCount" placeholder="默认 1，QUIC 建议 3" @input="onFormChange" />
                 </el-form-item>
               </div>
@@ -262,25 +262,25 @@
             </div>
             <div class="form-grid">
               <el-form-item>
-                <template #label><span class="opt-label">启用 TLS</span><span class="opt-default">默认 true</span></template>
+                <template #label><span class="opt-label">启用 TLS<span class="opt-default">默认 true</span><el-tooltip placement="right" :content="tips.tlsEnable" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.tlsEnable" :disabled="connMode === 'quic'" @change="onFormChange" />
               </el-form-item>
               <el-form-item v-if="form.tlsEnable || connMode === 'quic'">
-                <template #label><span class="opt-label">禁用自定义首字节</span><span class="opt-default">默认 true</span></template>
+                <template #label><span class="opt-label">禁用自定义首字节<span class="opt-default">默认 true</span><el-tooltip placement="right" :content="tips.disableCustomTLSFirstByte" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.tlsDisableCustomFirstByte" @change="onFormChange" />
               </el-form-item>
                 <template v-if="form.tlsEnable || connMode === 'quic'">
                   <p class="opt-hint">证书和密钥仅 mTLS 双向认证时需要，普通场景留空即可</p>
                   <el-form-item>
-                  <template #label><span class="opt-label">证书文件</span></template>
+                  <template #label><span class="opt-label">证书文件<el-tooltip placement="right" :content="tips.tlsCertFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsCertFile" placeholder="client.crt" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item>
-                  <template #label><span class="opt-label">密钥文件</span></template>
+                  <template #label><span class="opt-label">密钥文件<el-tooltip placement="right" :content="tips.tlsKeyFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsKeyFile" placeholder="client.key" @input="onFormChange" />
                 </el-form-item>
                 <el-form-item v-if="connMode === 'quic'">
-                  <template #label><span class="opt-label">TLS SNI</span></template>
+                  <template #label><span class="opt-label">TLS SNI<el-tooltip placement="right" :content="tips.tlsServerName" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsServerName" placeholder="留空=serverAddr" @input="onFormChange" />
                 </el-form-item>
               </template>
@@ -294,15 +294,15 @@
             </div>
             <div class="form-grid">
               <el-form-item>
-                <template #label><span class="opt-label">端口</span></template>
+                <template #label><span class="opt-label">端口<el-tooltip content='Web 管理面板监听端口。Go 源码无默认值，设为 0 则面板不启动。建议 7400。' placement="right" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webPort" placeholder="必填才能启用面板" @input="onFormChange" />
               </el-form-item>
               <el-form-item>
-                <template #label><span class="opt-label">用户名</span><span class="opt-default">默认 admin</span></template>
+                <template #label><span class="opt-label">用户名<span class="opt-default">默认 admin</span><el-tooltip placement="right" :content="tips.webUser" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.user" placeholder="用户名" @input="onFormChange" />
               </el-form-item>
               <el-form-item>
-                <template #label><span class="opt-label">密码</span></template>
+                <template #label><span class="opt-label">密码<el-tooltip placement="right" :content="tips.webPassword" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.password" type="password" show-password placeholder="密码" @input="onFormChange" />
               </el-form-item>
             </div>
