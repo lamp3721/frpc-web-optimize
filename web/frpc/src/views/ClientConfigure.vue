@@ -155,6 +155,12 @@
             <span class="optional-badge" v-if="optionalFilledCount">{{ optionalFilledCount }} 项已配</span>
           </h3>
         </div>
+        <div v-if="mismatchedFields.length" class="mismatch-warn">
+          <span class="mismatch-title">⚠ 当前模式无效的配置</span>
+          <div v-for="m in mismatchedFields" :key="m.key" class="mismatch-item">
+            <code>{{ m.key }}</code>{{ m.note ? ' — ' + m.note : '' }}
+          </div>
+        </div>
         <div class="optional-body">
           <div class="opt-group">
             <div class="opt-group-header">
@@ -479,6 +485,8 @@ import StringListEditor from '../components/StringListEditor.vue'
 import { useResponsive } from '../composables/useResponsive'
 import { parseToml, serializeToml } from '../utils/toml'
 import { CONFIG_DEFAULTS } from '../utils/defaults'
+import { isEffective, getNote } from '../config-modes'
+import type { ModeId } from '../config-modes'
 import type { FrpcConfig } from '../utils/toml'
 
 const { isMobile } = useResponsive()
@@ -568,6 +576,27 @@ const optionalFilledCount = computed(() => {
 })
 
 const detectedProxies = computed(() => parseToml(clientStore.config).proxies)
+
+const mismatchedFields = computed(() => {
+  const parsed = parseToml(clientStore.config)
+  const tr = getSection(parsed.sections, 'transport')
+  if (!tr) return []
+  const mode = connMode.value as ModeId
+  const warnings: { key: string; note: string }[] = []
+  const checkKeys = [
+    'protocol', 'tcpMux', 'tcpMuxKeepaliveInterval', 'dialServerKeepalive',
+    'dialServerTimeout', 'poolCount', 'wireProtocol', 'heartbeatInterval', 'heartbeatTimeout',
+    'tls.enable', 'tls.disableCustomTLSFirstByte', 'tls.certFile', 'tls.keyFile', 'tls.serverName',
+    'quic.keepalivePeriod', 'quic.maxIdleTimeout', 'quic.maxIncomingStreams',
+  ]
+  for (const key of checkKeys) {
+    const val = getVal(tr, key)
+    if (val !== undefined && !isEffective(mode, key)) {
+      warnings.push({ key, note: getNote(mode, key) || '当前模式下不生效' })
+    }
+  }
+  return warnings
+})
 
 const proxySummary = (p: Record<string, any>) => {
   if (p.customDomains) {
@@ -947,6 +976,17 @@ const rebuildPreview = () => {
   const cfg = formToConfig()
   cfg.proxies = current.proxies
   cfg.visitors = current.visitors
+
+  // Merge form-generated sections into current sections (preserve unknown keys)
+  for (const secName of Object.keys(cfg.sections)) {
+    if (current.sections[secName]) {
+      Object.assign(current.sections[secName], cfg.sections[secName])
+      cfg.sections[secName] = current.sections[secName]
+    }
+  }
+  // Preserve root keys from current that form doesn't handle
+  cfg.roots = { ...current.roots, ...cfg.roots }
+
   const existingOrder = ['auth', 'transport', 'webServer', 'log'].filter((s) =>
     current.sections && Object.keys(current.sections).some((k) => k.toLowerCase() === s.toLowerCase()),
   )
@@ -1070,6 +1110,28 @@ fetchData()
   justify-content: space-between;
   margin-bottom: $spacing-sm;
   .section-title { margin-bottom: 0; }
+}
+
+.mismatch-warn {
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  background: rgba(230, 162, 60, 0.06);
+  border: 1px solid rgba(230, 162, 60, 0.2);
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: #c88a2e;
+}
+
+.mismatch-title {
+  font-weight: $font-weight-semibold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.mismatch-item {
+  font-size: $font-size-xs;
+  margin-top: 2px;
+  code { background: rgba(0,0,0,0.04); padding: 1px 4px; border-radius: 2px; }
 }
 
 .form-panel {
