@@ -694,7 +694,7 @@ const form = reactive({
   heartbeatTimeout: '',
   poolCount: '',
   wireProtocol: '',
-  tlsEnable: false,
+  tlsEnable: true,
   tlsDisableCustomFirstByte: true,
   tlsCertFile: '',
   tlsKeyFile: '',
@@ -713,9 +713,9 @@ const syncing = false
 type ModePreset = Partial<typeof form>
 
 const modePresets: Record<string, ModePreset> = {
-  tcpMux: { tcpMux: true, tlsEnable: false },
-  tcpNoMux: { tcpMux: false, tlsEnable: false },
-  quic: { tcpMux: false, tlsEnable: true },
+  tcpMux: { tcpMux: true },
+  tcpNoMux: { tcpMux: false },
+  quic: { tcpMux: false },
 }
 
 const applyPreset = (mode: string) => {
