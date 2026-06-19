@@ -478,6 +478,7 @@ import ConfirmDialog from '@shared/components/ConfirmDialog.vue'
 import StringListEditor from '../components/StringListEditor.vue'
 import { useResponsive } from '../composables/useResponsive'
 import { parseToml, serializeToml } from '../utils/toml'
+import { CONFIG_DEFAULTS } from '../utils/defaults'
 import type { FrpcConfig } from '../utils/toml'
 
 const { isMobile } = useResponsive()
@@ -825,6 +826,12 @@ const getVal = (obj: Record<string, any> | undefined, key: string): any => {
   return undefined
 }
 
+const isDefault = (key: string, value: any): boolean => {
+  const def = CONFIG_DEFAULTS[key]
+  if (def === undefined || def === null) return !value
+  return value === def || value === '' || (typeof def === 'number' && Number(value) === def)
+}
+
 const formToConfig = (): FrpcConfig => {
   const roots: Record<string, any> = {}
   const sections: Record<string, Record<string, any>> = {}
@@ -840,36 +847,36 @@ const formToConfig = (): FrpcConfig => {
 
   if (connMode.value === 'quic') {
     const tr: Record<string, any> = { protocol: 'quic' }
-    if (form.poolCount) tr['poolCount'] = Number(form.poolCount)
+    if (form.poolCount && !isDefault('transport.poolCount', form.poolCount)) tr['poolCount'] = Number(form.poolCount)
     if (form.tlsEnable || connMode.value === 'quic') {
       tr['tls.enable'] = true
-      tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
+      if (!isDefault('transport.tls.disableCustomTLSFirstByte', form.tlsDisableCustomFirstByte)) tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
       if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
       if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
       if (form.tlsServerName) tr['tls.serverName'] = form.tlsServerName
     }
-    if (form.quicKeepalivePeriod) tr['quic.keepalivePeriod'] = Number(form.quicKeepalivePeriod)
-    if (form.quicMaxIdleTimeout) tr['quic.maxIdleTimeout'] = Number(form.quicMaxIdleTimeout)
-    if (form.quicMaxIncomingStreams) tr['quic.maxIncomingStreams'] = Number(form.quicMaxIncomingStreams)
+    if (form.quicKeepalivePeriod && !isDefault('transport.quic.keepalivePeriod', form.quicKeepalivePeriod)) tr['quic.keepalivePeriod'] = Number(form.quicKeepalivePeriod)
+    if (form.quicMaxIdleTimeout && !isDefault('transport.quic.maxIdleTimeout', form.quicMaxIdleTimeout)) tr['quic.maxIdleTimeout'] = Number(form.quicMaxIdleTimeout)
+    if (form.quicMaxIncomingStreams && !isDefault('transport.quic.maxIncomingStreams', form.quicMaxIncomingStreams)) tr['quic.maxIncomingStreams'] = Number(form.quicMaxIncomingStreams)
     sections['transport'] = tr
     order.push('__section:transport')
   } else {
     const tr: Record<string, any> = {}
     if (!form.tcpMux) tr['tcpMux'] = false
-    if (form.tcpMux && form.tcpMuxKeepaliveInterval) {
+    if (form.tcpMux && form.tcpMuxKeepaliveInterval && !isDefault('transport.tcpMuxKeepaliveInterval', form.tcpMuxKeepaliveInterval)) {
       tr['tcpMuxKeepaliveInterval'] = Number(form.tcpMuxKeepaliveInterval)
     }
-    if (form.dialServerKeepalive) {
+    if (form.dialServerKeepalive && !isDefault('transport.dialServerKeepalive', form.dialServerKeepalive)) {
       tr['dialServerKeepalive'] = Number(form.dialServerKeepalive)
     }
-    if (form.poolCount) tr['poolCount'] = Number(form.poolCount)
-    if (form.dialServerTimeout) tr['dialServerTimeout'] = Number(form.dialServerTimeout)
+    if (form.poolCount && !isDefault('transport.poolCount', form.poolCount)) tr['poolCount'] = Number(form.poolCount)
+    if (form.dialServerTimeout && !isDefault('transport.dialServerTimeout', form.dialServerTimeout)) tr['dialServerTimeout'] = Number(form.dialServerTimeout)
     if (form.heartbeatInterval) tr['heartbeatInterval'] = Number(form.heartbeatInterval)
     if (form.heartbeatTimeout) tr['heartbeatTimeout'] = Number(form.heartbeatTimeout)
-    if (form.wireProtocol) tr['wireProtocol'] = form.wireProtocol
+    if (form.wireProtocol && !isDefault('transport.wireProtocol', form.wireProtocol)) tr['wireProtocol'] = form.wireProtocol
     if (form.tlsEnable) {
       tr['tls.enable'] = true
-      tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
+      if (!isDefault('transport.tls.disableCustomTLSFirstByte', form.tlsDisableCustomFirstByte)) tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
       if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
       if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
     }
