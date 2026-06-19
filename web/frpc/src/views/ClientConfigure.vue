@@ -399,8 +399,8 @@
             <StringListEditor v-model="newProxy.customDomains" placeholder="example.com" />
           </el-form-item>
         </div>
-        <div class="proxy-dialog-divider"></div>
-        <div class="proxy-dialog-section">
+        <div v-if="newProxy.type !== 'https'" class="proxy-dialog-divider"></div>
+        <div v-if="newProxy.type !== 'https'" class="proxy-dialog-section">
           <div class="proxy-dialog-switch-row">
             <span class="proxy-dialog-switch-label">压缩传输</span>
             <el-switch v-model="newProxy.useCompression" />
