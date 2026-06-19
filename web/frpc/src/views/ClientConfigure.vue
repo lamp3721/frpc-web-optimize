@@ -667,9 +667,6 @@ const saveProxy = () => {
   if (newProxy.enabled === false) proxy.enabled = false
   if (newProxy.remotePort != null) proxy.remotePort = newProxy.remotePort
   if (newProxy.customDomains.length > 0) proxy.customDomains = newProxy.customDomains
-  if (newProxy.useCompression) proxy.useCompression = true
-  if (newProxy.useEncryption) proxy.useEncryption = true
-  if (!newProxy.enabled) proxy.enabled = false
 
   if (editingIndex.value >= 0) {
     parsed.proxies[editingIndex.value] = proxy
@@ -771,19 +768,15 @@ const formToConfig = (): FrpcConfig => {
     const tr: Record<string, any> = { protocol: 'quic' }
     if (form.poolCount) tr['poolCount'] = Number(form.poolCount)
     if (form.tlsEnable || connMode.value === 'quic') {
-      tr['tls'] = {
-        enable: true,
-        disableCustomTLSFirstByte: form.tlsDisableCustomFirstByte,
-        ...(form.tlsCertFile ? { certFile: form.tlsCertFile } : {}),
-        ...(form.tlsKeyFile ? { keyFile: form.tlsKeyFile } : {}),
-        ...(form.tlsServerName ? { serverName: form.tlsServerName } : {}),
-      }
+      tr['tls.enable'] = true
+      tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
+      if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
+      if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
+      if (form.tlsServerName) tr['tls.serverName'] = form.tlsServerName
     }
-    const quic: Record<string, any> = {}
-    if (form.quicKeepalivePeriod) quic['keepalivePeriod'] = Number(form.quicKeepalivePeriod)
-    if (form.quicMaxIdleTimeout) quic['maxIdleTimeout'] = Number(form.quicMaxIdleTimeout)
-    if (form.quicMaxIncomingStreams) quic['maxIncomingStreams'] = Number(form.quicMaxIncomingStreams)
-    if (Object.keys(quic).length > 0) tr['quic'] = quic
+    if (form.quicKeepalivePeriod) tr['quic.keepalivePeriod'] = Number(form.quicKeepalivePeriod)
+    if (form.quicMaxIdleTimeout) tr['quic.maxIdleTimeout'] = Number(form.quicMaxIdleTimeout)
+    if (form.quicMaxIncomingStreams) tr['quic.maxIncomingStreams'] = Number(form.quicMaxIncomingStreams)
     sections['transport'] = tr
     order.push('__section:transport')
   } else {
@@ -801,18 +794,16 @@ const formToConfig = (): FrpcConfig => {
     if (form.heartbeatTimeout) tr['heartbeatTimeout'] = Number(form.heartbeatTimeout)
     if (form.wireProtocol) tr['wireProtocol'] = form.wireProtocol
     if (form.tlsEnable) {
-      tr['tls'] = {
-        enable: true,
-        disableCustomTLSFirstByte: form.tlsDisableCustomFirstByte,
-        ...(form.tlsCertFile ? { certFile: form.tlsCertFile } : {}),
-        ...(form.tlsKeyFile ? { keyFile: form.tlsKeyFile } : {}),
-      }
+      tr['tls.enable'] = true
+      tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
+      if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
+      if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
     }
     sections['transport'] = tr
     order.push('__section:transport')
   }
 
-  if (form.user || form.password) {
+  if (form.webPort || form.user || form.password) {
     const ws: Record<string, any> = {}
     ws['addr'] = '0.0.0.0'
     if (form.webPort) ws['port'] = Number(form.webPort)
@@ -847,17 +838,15 @@ const applyParsedToForm = (cfg: FrpcConfig) => {
     form.poolCount = getVal(tr, 'poolCount') != null ? String(getVal(tr, 'poolCount')) : ''
     form.wireProtocol = getVal(tr, 'wireProtocol') || ''
 
-    const trTls = getVal(tr, 'tls') || {}
-    form.tlsEnable = getVal(trTls, 'enable') === true || getVal(tr, 'protocol') === 'quic'
-    form.tlsDisableCustomFirstByte = getVal(trTls, 'disableCustomTLSFirstByte') !== false
-    form.tlsCertFile = getVal(trTls, 'certFile') || ''
-    form.tlsKeyFile = getVal(trTls, 'keyFile') || ''
-    form.tlsServerName = getVal(trTls, 'serverName') || ''
+    form.tlsEnable = getVal(tr, 'tls.enable') === true || getVal(tr, 'protocol') === 'quic'
+    form.tlsDisableCustomFirstByte = getVal(tr, 'tls.disableCustomTLSFirstByte') !== false
+    form.tlsCertFile = getVal(tr, 'tls.certFile') || ''
+    form.tlsKeyFile = getVal(tr, 'tls.keyFile') || ''
+    form.tlsServerName = getVal(tr, 'tls.serverName') || ''
 
-    const trQuic = getVal(tr, 'quic') || {}
-    form.quicKeepalivePeriod = getVal(trQuic, 'keepalivePeriod') != null ? String(getVal(trQuic, 'keepalivePeriod')) : ''
-    form.quicMaxIdleTimeout = getVal(trQuic, 'maxIdleTimeout') != null ? String(getVal(trQuic, 'maxIdleTimeout')) : ''
-    form.quicMaxIncomingStreams = getVal(trQuic, 'maxIncomingStreams') != null ? String(getVal(trQuic, 'maxIncomingStreams')) : ''
+    form.quicKeepalivePeriod = getVal(tr, 'quic.keepalivePeriod') != null ? String(getVal(tr, 'quic.keepalivePeriod')) : ''
+    form.quicMaxIdleTimeout = getVal(tr, 'quic.maxIdleTimeout') != null ? String(getVal(tr, 'quic.maxIdleTimeout')) : ''
+    form.quicMaxIncomingStreams = getVal(tr, 'quic.maxIncomingStreams') != null ? String(getVal(tr, 'quic.maxIncomingStreams')) : ''
   }
 
   const ws = getSection(cfg.sections, 'webServer')
