@@ -150,10 +150,7 @@
       <!-- Optional config panel (right side) -->
       <div class="optional-panel" v-if="showOptional">
         <div class="optional-panel-header">
-          <h3 class="section-title">
-            可选配置
-            <span class="optional-badge" v-if="optionalFilledCount">{{ optionalFilledCount }} 项已配</span>
-          </h3>
+          <h3 class="section-title">可选配置</h3>
         </div>
         <div v-if="mismatchedFields.length" class="mismatch-warn">
           <span class="mismatch-title">⚠ 当前模式无效的配置</span>
@@ -564,15 +561,6 @@ const poolCountHint = computed(() => {
   if (connMode.value === 'quic') return '默认 1，QUIC 建议 ≥3'
   if (connMode.value === 'tcpNoMux') return '默认 1，直连建议 5'
   return '默认 1'
-})
-
-const optionalFilledCount = computed(() => {
-  let n = 0
-  if (form.serverPort) n++
-  if (form.tlsEnable || form.tlsCertFile || form.tlsKeyFile || !form.tlsDisableCustomFirstByte) n++
-  if (form.quicKeepalivePeriod || form.quicMaxIdleTimeout || form.quicMaxIncomingStreams) n++
-  if (form.user || form.password || form.webPort) n++
-  return n
 })
 
 const detectedProxies = computed(() => parseToml(clientStore.config).proxies)
