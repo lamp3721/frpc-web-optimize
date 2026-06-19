@@ -396,8 +396,39 @@
             </div>
             <span class="field-hint">外部用户通过 frps 的此端口访问你的内网服务</span>
           </el-form-item>
-          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'https' || newProxy.type === 'tcpmux'" label="自定义域名">
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'https' || newProxy.type === 'tcpmux'">
+            <template #label>
+              <span class="opt-label">
+                自定义域名
+                <el-tooltip content="你自己的域名，需要 DNS 指向 frps 服务器。支持通配符 *.example.com" placement="top">
+                  <el-icon class="tip-icon"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </span>
+            </template>
             <StringListEditor v-model="newProxy.customDomains" placeholder="example.com" />
+          </el-form-item>
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'https'">
+            <template #label>
+              <span class="opt-label">
+                子域名
+                <el-tooltip content="无需自有域名，由 frps 管理员配好 subdomainHost 后自动分配。填 test 得到 test.frp.example.com" placement="top">
+                  <el-icon class="tip-icon"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </span>
+            </template>
+            <el-input v-model="newProxy.subdomain" placeholder="test" />
+          </el-form-item>
+          <el-form-item v-if="newProxy.type === 'http'" label="路径">
+            <StringListEditor v-model="newProxy.locations" placeholder="/api" />
+          </el-form-item>
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'tcpmux'" label="HTTP 用户">
+            <el-input v-model="newProxy.httpUser" placeholder="Basic Auth 用户名" />
+          </el-form-item>
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'tcpmux'" label="HTTP 密码">
+            <el-input v-model="newProxy.httpPassword" type="password" show-password placeholder="Basic Auth 密码" />
+          </el-form-item>
+          <el-form-item v-if="newProxy.type === 'stcp' || newProxy.type === 'sudp' || newProxy.type === 'xtcp'" label="密钥">
+            <el-input v-model="newProxy.secretKey" type="password" show-password placeholder="共享密钥" />
           </el-form-item>
         </div>
         <div v-if="newProxy.type !== 'https'" class="proxy-dialog-divider"></div>
@@ -527,6 +558,7 @@ const proxySummary = (p: Record<string, any>) => {
     return `→ ${p.localIP || '127.0.0.1'}:${p.localPort || '-'}（${domains}）`
   }
   if (p.subdomain) return `→ ${p.localIP || '127.0.0.1'}:${p.localPort || '-'}（${p.subdomain}）`
+  if (p.secretKey) return `→ ${p.localIP || '127.0.0.1'}:${p.localPort || '-'}（密钥已配置）`
   return `→ ${p.localIP || '127.0.0.1'}:${p.localPort || '-'}`
 }
 
@@ -615,6 +647,11 @@ const newProxy = reactive({
   localPort: undefined as number | undefined,
   remotePort: undefined as number | undefined,
   customDomains: [] as string[],
+  subdomain: '',
+  locations: [] as string[],
+  httpUser: '',
+  httpPassword: '',
+  secretKey: '',
   enabled: true,
   useCompression: false,
   useEncryption: false,
@@ -630,6 +667,11 @@ const openProxyDialog = () => {
   newProxy.localPort = undefined
   newProxy.remotePort = undefined
   newProxy.customDomains = []
+  newProxy.subdomain = ''
+  newProxy.locations = []
+  newProxy.httpUser = ''
+  newProxy.httpPassword = ''
+  newProxy.secretKey = ''
   newProxy.enabled = true
   newProxy.useCompression = false
   newProxy.useEncryption = false
@@ -646,6 +688,11 @@ const editProxy = (index: number) => {
   newProxy.localPort = p.localPort
   newProxy.remotePort = p.remotePort
   newProxy.customDomains = Array.isArray(p.customDomains) ? [...p.customDomains] : (p.customDomains ? [p.customDomains] : [])
+  newProxy.subdomain = p.subdomain || ''
+  newProxy.locations = Array.isArray(p.locations) ? [...p.locations] : (p.locations ? [p.locations] : [])
+  newProxy.httpUser = p.httpUser || ''
+  newProxy.httpPassword = p.httpPassword || ''
+  newProxy.secretKey = p.secretKey || ''
   newProxy.enabled = p.enabled !== false
   newProxy.useCompression = p['transport.useCompression'] === true
   newProxy.useEncryption = p['transport.useEncryption'] === true
@@ -669,6 +716,11 @@ const saveProxy = () => {
   if (newProxy.enabled === false) proxy.enabled = false
   if (newProxy.remotePort != null) proxy.remotePort = newProxy.remotePort
   if (newProxy.customDomains.length > 0) proxy.customDomains = newProxy.customDomains
+  if (newProxy.subdomain) proxy.subdomain = newProxy.subdomain
+  if (newProxy.locations.length > 0) proxy.locations = newProxy.locations
+  if (newProxy.httpUser) proxy.httpUser = newProxy.httpUser
+  if (newProxy.httpPassword) proxy.httpPassword = newProxy.httpPassword
+  if (newProxy.secretKey) proxy.secretKey = newProxy.secretKey
 
   if (editingIndex.value >= 0) {
     parsed.proxies[editingIndex.value] = proxy
