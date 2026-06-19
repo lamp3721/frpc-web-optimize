@@ -399,6 +399,17 @@
             <StringListEditor v-model="newProxy.customDomains" placeholder="example.com" />
           </el-form-item>
         </div>
+        <div class="proxy-dialog-divider"></div>
+        <div class="proxy-dialog-section">
+          <div class="proxy-dialog-switch-row">
+            <span class="proxy-dialog-switch-label">压缩传输</span>
+            <el-switch v-model="newProxy.useCompression" />
+          </div>
+          <div class="proxy-dialog-switch-row">
+            <span class="proxy-dialog-switch-label">加密传输</span>
+            <el-switch v-model="newProxy.useEncryption" />
+          </div>
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="proxyDialogVisible = false">取消</el-button>
@@ -603,6 +614,8 @@ const newProxy = reactive({
   remotePort: undefined as number | undefined,
   customDomains: [] as string[],
   enabled: true,
+  useCompression: false,
+  useEncryption: false,
 })
 
 const PROXY_TYPES = ['tcp', 'udp', 'http', 'https', 'tcpmux', 'stcp', 'sudp', 'xtcp']
@@ -616,6 +629,8 @@ const openProxyDialog = () => {
   newProxy.remotePort = undefined
   newProxy.customDomains = []
   newProxy.enabled = true
+  newProxy.useCompression = false
+  newProxy.useEncryption = false
   proxyDialogVisible.value = true
 }
 
@@ -630,6 +645,8 @@ const editProxy = (index: number) => {
   newProxy.remotePort = p.remotePort
   newProxy.customDomains = Array.isArray(p.customDomains) ? [...p.customDomains] : (p.customDomains ? [p.customDomains] : [])
   newProxy.enabled = p.enabled !== false
+  newProxy.useCompression = p['transport.useCompression'] === true
+  newProxy.useEncryption = p['transport.useEncryption'] === true
   proxyDialogVisible.value = true
 }
 
@@ -645,8 +662,13 @@ const saveProxy = () => {
     localIP: newProxy.localIP || '127.0.0.1',
     localPort: newProxy.localPort,
   }
+  if (newProxy.useCompression) proxy['transport.useCompression'] = true
+  if (newProxy.useEncryption) proxy['transport.useEncryption'] = true
+  if (newProxy.enabled === false) proxy.enabled = false
   if (newProxy.remotePort != null) proxy.remotePort = newProxy.remotePort
   if (newProxy.customDomains.length > 0) proxy.customDomains = newProxy.customDomains
+  if (newProxy.useCompression) proxy.useCompression = true
+  if (newProxy.useEncryption) proxy.useEncryption = true
   if (!newProxy.enabled) proxy.enabled = false
 
   if (editingIndex.value >= 0) {
