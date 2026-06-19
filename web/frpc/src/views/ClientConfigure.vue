@@ -343,7 +343,8 @@
         </div>
         <div class="proxy-dialog-divider"></div>
         <div class="proxy-dialog-section">
-          <el-form-item label="名称" required>
+          <el-form-item required>
+            <template #label><span class="opt-label">名称<el-tooltip content="代理唯一标识，所有代理中不可重复" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model="newProxy.name" placeholder="my-proxy" />
           </el-form-item>
         </div>
@@ -379,10 +380,12 @@
         </div>
         <div class="proxy-dialog-divider"></div>
         <div class="proxy-dialog-section">
-          <el-form-item label="本地 IP">
+          <el-form-item>
+            <template #label><span class="opt-label">本地 IP<el-tooltip content="内网服务所在机器的 IP 地址，本机通常是 127.0.0.1" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model="newProxy.localIP" placeholder="127.0.0.1" />
           </el-form-item>
-          <el-form-item label="本地端口" required>
+          <el-form-item required>
+            <template #label><span class="opt-label">本地端口<el-tooltip content="内网服务监听的端口，如 SSH=22、HTTP=80" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model.number="newProxy.localPort" type="number" :placeholder="portPlaceholder" />
           </el-form-item>
         </div>
@@ -421,24 +424,27 @@
           <el-form-item v-if="newProxy.type === 'http'" label="路径">
             <StringListEditor v-model="newProxy.locations" placeholder="/api" />
           </el-form-item>
-          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'tcpmux'" label="HTTP 用户">
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'tcpmux'">
+            <template #label><span class="opt-label">HTTP 用户<el-tooltip content="访问此代理时需要的 Basic Auth 用户名，浏览器会弹出登录框" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model="newProxy.httpUser" placeholder="Basic Auth 用户名" />
           </el-form-item>
-          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'tcpmux'" label="HTTP 密码">
+          <el-form-item v-if="newProxy.type === 'http' || newProxy.type === 'tcpmux'">
+            <template #label><span class="opt-label">HTTP 密码<el-tooltip content="配合 HTTP 用户使用，留空则不需要密码" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model="newProxy.httpPassword" type="password" show-password placeholder="Basic Auth 密码" />
           </el-form-item>
-          <el-form-item v-if="newProxy.type === 'stcp' || newProxy.type === 'sudp' || newProxy.type === 'xtcp'" label="密钥">
+          <el-form-item v-if="newProxy.type === 'stcp' || newProxy.type === 'sudp' || newProxy.type === 'xtcp'">
+            <template #label><span class="opt-label">密钥<el-tooltip content="预共享密钥，访问者必须提供相同密钥才能建立连接" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
             <el-input v-model="newProxy.secretKey" type="password" show-password placeholder="共享密钥" />
           </el-form-item>
         </div>
         <div v-if="newProxy.type !== 'https'" class="proxy-dialog-divider"></div>
         <div v-if="newProxy.type !== 'https'" class="proxy-dialog-section">
           <div class="proxy-dialog-switch-row">
-            <span class="proxy-dialog-switch-label">压缩传输</span>
+            <span class="proxy-dialog-switch-label">压缩传输<el-tooltip content="开启后 frpc ↔ frps 数据压缩传输，节省带宽但消耗 CPU。HTTPS 无效" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
             <el-switch v-model="newProxy.useCompression" />
           </div>
           <div class="proxy-dialog-switch-row">
-            <span class="proxy-dialog-switch-label">加密传输</span>
+            <span class="proxy-dialog-switch-label">加密传输<el-tooltip content="开启后 frpc ↔ frps 数据加密传输。HTTPS 因已有 TLS，无需重复加密" placement="top"><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
             <el-switch v-model="newProxy.useEncryption" />
           </div>
         </div>
