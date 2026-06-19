@@ -316,7 +316,7 @@
     </el-tooltip>
 
     <!-- TOML Preview Drawer -->
-    <el-drawer :model-value="!previewCollapsed" @update:model-value="previewCollapsed = !$event" title="TOML 预览" direction="rtl" size="500px">
+    <el-drawer :model-value="!previewCollapsed" @update:model-value="previewCollapsed = !$event" title="TOML 预览" direction="rtl" :size="isMobile ? '100%' : '500px'">
       <pre class="preview-content">{{ previewToml }}</pre>
     </el-drawer>
 
@@ -333,7 +333,7 @@
       @confirm="confirmDeleteProxy"
     />
 
-    <el-dialog v-model="proxyDialogVisible" :title="editingIndex >= 0 ? '编辑代理' : '添加代理'" width="520px">
+    <el-dialog v-model="proxyDialogVisible" :title="editingIndex >= 0 ? '编辑代理' : '添加代理'" :width="isMobile ? '100%' : '520px'" :fullscreen="isMobile">
       <el-form label-position="top">
         <div class="proxy-dialog-section">
           <div class="proxy-dialog-switch-row">
@@ -1428,11 +1428,26 @@ export const TipLabel = defineComponent({
 }
 
 @include mobile {
-  .configure-page { padding: $spacing-lg; }
+  .configure-page { padding: $spacing-lg; overflow-y: auto; }
   .split-layout { flex-direction: column; }
   .form-panel { flex: none; overflow-y: visible; padding-right: 0; }
-  .title-row { flex-direction: column; align-items: flex-start; }
+  .form-main { flex: none; min-width: 0; }
+  .title-row { flex-direction: column; align-items: flex-start; gap: $spacing-sm; }
   .conn-mode-cards { flex-direction: column; }
+  .optional-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid $color-border-lighter;
+    padding: $spacing-md 0 0;
+    margin-top: $spacing-md;
+    overflow-y: visible;
+  }
+  .type-pills { gap: 4px; }
+  .type-pill { padding: 5px 10px; font-size: $font-size-xs; }
+  .flow-row { flex-direction: column; align-items: stretch; }
+  .flow-input { width: 100%; }
+  .flow-arrow { text-align: center; }
+  .floating-preview-btn { bottom: 16px; right: 16px; }
 }
 
 .floating-preview-btn {
