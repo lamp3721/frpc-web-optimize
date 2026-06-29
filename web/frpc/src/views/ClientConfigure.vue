@@ -471,7 +471,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Link, QuestionFilled, Connection, Setting, Lock, User, View, Edit, Delete } from '@element-plus/icons-vue'
 import { useClientStore } from '../stores/client'
@@ -717,19 +717,44 @@ const openProxyDialog = () => {
 const editProxy = (index: number) => {
   editingIndex.value = index
   const p = detectedProxies.value[index]
+  const t = p.type || 'tcp'
   newProxy.name = p.name || ''
-  newProxy.type = p.type || 'tcp'
-  showMoreTypes.value = ['tcpmux', 'stcp', 'sudp', 'xtcp'].includes(newProxy.type)
+  newProxy.type = t
+  showMoreTypes.value = ['tcpmux', 'stcp', 'sudp', 'xtcp'].includes(t)
   newProxy.localIP = p.localIP || '127.0.0.1'
   newProxy.localPort = p.localPort
-  newProxy.remotePort = p.remotePort
-  newProxy.customDomains = Array.isArray(p.customDomains) ? [...p.customDomains] : (p.customDomains ? [p.customDomains] : [])
-  newProxy.subdomain = p.subdomain || ''
-  newProxy.locations = Array.isArray(p.locations) ? [...p.locations] : (p.locations ? [p.locations] : [])
-  newProxy.httpUser = p.httpUser || ''
-  newProxy.httpPassword = p.httpPassword || ''
-  newProxy.secretKey = p.secretKey || ''
-  newProxy.multiplexer = p.multiplexer || ''
+
+  // Only load type-specific fields based on actual type
+  newProxy.remotePort = undefined
+  newProxy.customDomains = []
+  newProxy.subdomain = ''
+  newProxy.locations = []
+  newProxy.httpUser = ''
+  newProxy.httpPassword = ''
+  newProxy.secretKey = ''
+  newProxy.multiplexer = ''
+
+  if (t === 'tcp' || t === 'udp') {
+    newProxy.remotePort = p.remotePort
+  }
+  if (t === 'http' || t === 'https' || t === 'tcpmux') {
+    newProxy.customDomains = Array.isArray(p.customDomains) ? [...p.customDomains] : (p.customDomains ? [p.customDomains] : [])
+    newProxy.subdomain = p.subdomain || ''
+  }
+  if (t === 'http') {
+    newProxy.locations = Array.isArray(p.locations) ? [...p.locations] : (p.locations ? [p.locations] : [])
+  }
+  if (t === 'http' || t === 'tcpmux') {
+    newProxy.httpUser = p.httpUser || ''
+    newProxy.httpPassword = p.httpPassword || ''
+  }
+  if (t === 'tcpmux') {
+    newProxy.multiplexer = p.multiplexer || ''
+  }
+  if (t === 'stcp' || t === 'sudp' || t === 'xtcp') {
+    newProxy.secretKey = p.secretKey || ''
+  }
+
   newProxy.enabled = p.enabled !== false
   newProxy.useCompression = p['transport.useCompression'] === true
   newProxy.useEncryption = p['transport.useEncryption'] === true
@@ -751,14 +776,28 @@ const saveProxy = () => {
   if (newProxy.useCompression) proxy['transport.useCompression'] = true
   if (newProxy.useEncryption) proxy['transport.useEncryption'] = true
   if (newProxy.enabled === false) proxy.enabled = false
-  if (newProxy.remotePort != null) proxy.remotePort = newProxy.remotePort
-  if (newProxy.customDomains.length > 0) proxy.customDomains = newProxy.customDomains
-  if (newProxy.subdomain) proxy.subdomain = newProxy.subdomain
-  if (newProxy.locations.length > 0) proxy.locations = newProxy.locations
-  if (newProxy.httpUser) proxy.httpUser = newProxy.httpUser
-  if (newProxy.httpPassword) proxy.httpPassword = newProxy.httpPassword
-  if (newProxy.secretKey) proxy.secretKey = newProxy.secretKey
-  if (newProxy.multiplexer) proxy.multiplexer = newProxy.multiplexer
+
+  // Type-specific fields
+  if ((newProxy.type === 'tcp' || newProxy.type === 'udp') && newProxy.remotePort != null) {
+    proxy.remotePort = newProxy.remotePort
+  }
+  if (newProxy.type === 'http' || newProxy.type === 'https' || newProxy.type === 'tcpmux') {
+    if (newProxy.customDomains.length > 0) proxy.customDomains = newProxy.customDomains
+    if (newProxy.subdomain) proxy.subdomain = newProxy.subdomain
+  }
+  if (newProxy.type === 'http') {
+    if (newProxy.locations.length > 0) proxy.locations = newProxy.locations
+  }
+  if (newProxy.type === 'http' || newProxy.type === 'tcpmux') {
+    if (newProxy.httpUser) proxy.httpUser = newProxy.httpUser
+    if (newProxy.httpPassword) proxy.httpPassword = newProxy.httpPassword
+  }
+  if (newProxy.type === 'tcpmux' && newProxy.multiplexer) {
+    proxy.multiplexer = newProxy.multiplexer
+  }
+  if (newProxy.type === 'stcp' || newProxy.type === 'sudp' || newProxy.type === 'xtcp') {
+    if (newProxy.secretKey) proxy.secretKey = newProxy.secretKey
+  }
 
   if (editingIndex.value >= 0) {
     parsed.proxies[editingIndex.value] = proxy
@@ -770,6 +809,24 @@ const saveProxy = () => {
   proxyDialogVisible.value = false
   rebuildPreview()
 }
+
+// Reset type-specific fields when type changes in dialog
+let prevDialogType = newProxy.type
+watch(
+  () => newProxy.type,
+  (newType) => {
+    if (newType === prevDialogType) return
+    prevDialogType = newType
+    newProxy.remotePort = undefined
+    newProxy.customDomains = []
+    newProxy.subdomain = ''
+    newProxy.locations = []
+    newProxy.httpUser = ''
+    newProxy.httpPassword = ''
+    newProxy.secretKey = ''
+    newProxy.multiplexer = ''
+  },
+)
 
 const form = reactive({
   serverAddr: '',

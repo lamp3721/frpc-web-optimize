@@ -171,6 +171,7 @@ const loadProxy = async () => {
   } finally {
     pageLoading.value = false
     nextTick(() => {
+      prevType = form.value.type
       trackChanges.value = true
     })
   }
@@ -224,9 +225,40 @@ watch(
     trackChanges.value = false
     form.value = createDefaultProxyForm()
     dirty.value = false
+    prevType = form.value.type
     nextTick(() => {
       trackChanges.value = true
     })
+  },
+)
+
+let prevType = form.value.type
+watch(
+  () => form.value.type,
+  (newType) => {
+    if (!trackChanges.value) {
+      prevType = newType
+      return
+    }
+    if (newType === prevType) return
+    prevType = newType
+    const f = form.value
+
+    // Reset all type-specific fields
+    f.remotePort = undefined
+    f.customDomains = []
+    f.subdomain = ''
+    f.locations = []
+    f.httpUser = ''
+    f.httpPassword = ''
+    f.hostHeaderRewrite = ''
+    f.requestHeaders = []
+    f.responseHeaders = []
+    f.routeByHTTPUser = ''
+    f.multiplexer = 'httpconnect'
+    f.secretKey = ''
+    f.allowUsers = []
+    f.natTraversalDisableAssistedAddrs = false
   },
 )
 </script>
