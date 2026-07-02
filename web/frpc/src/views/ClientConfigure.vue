@@ -339,7 +339,7 @@
       @confirm="confirmDeleteProxy"
     />
 
-    <el-dialog v-model="proxyDialogVisible" :title="editingIndex >= 0 ? '编辑代理' : '添加代理'" :width="isMobile ? '100%' : '520px'" :fullscreen="isMobile">
+    <el-dialog v-model="proxyDialogVisible" :title="editingIndex >= 0 ? '编辑代理' : '添加代理'" :width="isMobile ? '100%' : '520px'" :fullscreen="isMobile" :close-on-click-modal="false" :close-on-press-escape="false" destroy-on-close :append-to-body="true">
       <el-form label-position="top">
         <div class="proxy-dialog-section">
           <div class="proxy-dialog-switch-row">
@@ -696,6 +696,7 @@ const PROXY_TYPES = ['tcp', 'udp', 'http', 'https', 'tcpmux', 'stcp', 'sudp', 'x
 
 const openProxyDialog = () => {
   editingIndex.value = -1
+  prevDialogType = 'tcp'
   newProxy.name = ''
   newProxy.type = 'tcp'
   newProxy.localIP = '127.0.0.1'
@@ -718,6 +719,7 @@ const editProxy = (index: number) => {
   editingIndex.value = index
   const p = detectedProxies.value[index]
   const t = p.type || 'tcp'
+  prevDialogType = t
   newProxy.name = p.name || ''
   newProxy.type = t
   showMoreTypes.value = ['tcpmux', 'stcp', 'sudp', 'xtcp'].includes(t)
