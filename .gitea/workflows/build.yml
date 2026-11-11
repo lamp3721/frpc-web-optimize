@@ -1,0 +1,138 @@
+# =============================================================================
+# 🚀 frpc-web-optimize 自动构建与发布
+# 构建 frpc + Web 配置界面镜像，推送到 gitea.eeccc.cc 内置 registry
+# =============================================================================
+name: 🚀 构建并发布 frpc 镜像
+
+run-name: ${{ gitea.actor }} 构建镜像 #${{ gitea.run_number }}
+
+on:
+  push:
+    branches: [main, master, dev, dev-web]
+    paths:
+      - 'client/**'
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'web/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
+      - 'docker-entrypoint.sh'
+      - '.dockerignore'
+      - '.gitea/workflows/**'
+    paths-ignore:
+      - '**.md'
+
+env:
+  DOCKER_BUILDKIT: "1"
+
+  # 基础配置
+  DOCKERFILE_PATH: "Dockerfile"
+
+  # Git 访问
+  GITEA_HOST: "gitea.eeccc.cc"
+  GIT_PROTOCOL: "https"
+  GIT_USERNAME: ${{ gitea.actor }}
+  AUTH_TOKEN: ${{ secrets.MY_PAT }}
+  REPOSITORY: ${{ gitea.repository }}
+  BRANCH: ${{ gitea.ref_name }}
+  RUN_NUMBER: ${{ gitea.run_number }}
+
+  # 镜像仓库
+  REGISTRY_HOST: "gitea.eeccc.cc"
+  REGISTRY_SCHEME: "https"
+  REGISTRY_USERNAME: ${{ vars.REGISTRY_USER || gitea.actor }}
+  REGISTRY_PASSWORD: ${{ secrets.MY_PAT }}
+
+  # 分支 → 环境映射：dev-web 是本 fork 的主线，产出 :latest
+  BRANCH_MAPPING: |
+    main=prod:latest:prod
+    master=prod:latest:prod
+    dev-web=prod:latest:prod
+    dev=dev:dev:dev
+
+  # Portainer 部署 webhook（拿到 stack webhook URL 后填入并改 true）
+  WEBHOOK_ENABLED: "false"
+  WEBHOOK_URL: ""
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest-amd64
+
+    steps:
+      # 1️⃣ 镜像路径
+      - name: 🏷️ 初始化路径变量
+        id: init
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/image-path-init@main
+        with:
+          repository: ${{ env.REPOSITORY }}
+          registry_host: ${{ env.REGISTRY_HOST }}
+
+      # 2️⃣ 镜像标签
+      - name: 🏷️ 计算镜像标签
+        id: tag
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/tag-calculate@main
+        with:
+          branch: ${{ env.BRANCH }}
+          run_number: ${{ env.RUN_NUMBER }}
+          branch_mapping: ${{ env.BRANCH_MAPPING }}
+
+      # 3️⃣ 检出代码
+      - name: 🛠️ 检出代码
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/git-checkout@main
+        with:
+          host: ${{ env.GITEA_HOST }}
+          repository: ${{ env.REPOSITORY }}
+          branch: ${{ env.BRANCH }}
+          protocol: ${{ env.GIT_PROTOCOL }}
+          username: ${{ env.GIT_USERNAME }}
+          token: ${{ env.AUTH_TOKEN }}
+
+      # 4️⃣ Docker 登录
+      - name: 🔐 Docker 登录
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/docker-login@main
+        with:
+          registry: ${{ env.REGISTRY_HOST }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      # 5️⃣ 构建（前端 + frpc 多阶段构建，产物留本地）
+      - name: 🔨 Docker 构建
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/docker-build@main
+        with:
+          dockerfile: ${{ env.DOCKERFILE_PATH }}
+          image_repo: ${{ steps.init.outputs.image_repo }}
+          unique_tag: ${{ steps.tag.outputs.unique_tag }}
+          cursor_tag: ${{ steps.tag.outputs.cursor_tag }}
+          labels: |
+            org.opencontainers.image.source=${{ env.REGISTRY_SCHEME }}://${{ env.GITEA_HOST }}/${{ env.REPOSITORY }}
+            org.opencontainers.image.revision=${{ gitea.sha }}
+            org.opencontainers.image.version=${{ steps.tag.outputs.unique_tag }}
+
+      # 6️⃣ 推送
+      - name: 🚀 Docker 推送
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/docker-push@main
+        with:
+          image_repo: ${{ steps.init.outputs.image_repo }}
+          unique_tag: ${{ steps.tag.outputs.unique_tag }}
+          cursor_tag: ${{ steps.tag.outputs.cursor_tag }}
+
+      # 7️⃣ 成品信息
+      - name: 📋 成品镜像信息
+        if: success()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🎊 frpc 镜像构建完成："
+          echo "   → ${{ steps.init.outputs.image_repo }}:${{ steps.tag.outputs.unique_tag }}"
+          echo "   → ${{ steps.init.outputs.image_repo }}:${{ steps.tag.outputs.cursor_tag }}"
+          echo ""
+          echo "🏃 部署：docker pull ${{ steps.init.outputs.image_repo }}:${{ steps.tag.outputs.cursor_tag }}"
+          echo "   或仓库根目录 docker-compose.yml（放开 image 行）"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # 8️⃣ Portainer 部署（启用后自动更新 stack）
+      - name: 🔔 触发部署 Webhook
+        if: success() && env.WEBHOOK_ENABLED == 'true'
+        uses: https://gitea.eeccc.cc/admin/gitea-actions/webhook-trigger@main
+        with:
+          url: ${{ env.WEBHOOK_URL }}

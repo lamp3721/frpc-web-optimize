@@ -1,0 +1,14 @@
+# 构建上下文瘦身：加快构建、避免 .git 干扰 Go buildvcs
+.git
+.github
+.gitea
+.circleci
+bin/
+*.exe
+*.log
+**/node_modules/
+web/frpc/dist/
+web/frps/dist/
+doc/
+test/
+hack/

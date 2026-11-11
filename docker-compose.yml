@@ -1,0 +1,40 @@
+# frpc Web 配置界面版 · Docker 部署模板
+#
+# 快速开始：
+#   1. 改下面的 FRPC_SERVER_ADDR / FRPC_TOKEN 为你的 frps 信息（也可先不填，起来后在界面里配）
+#   2. docker compose up -d
+#   3. 浏览器打开 http://<宿主机IP>:7500 （默认 admin / admin，务必改 FRPC_WEB_PASSWORD）
+#   4. 界面左侧"配置"页改 frps 地址/令牌，"更新并重载"即生效；
+#      "代理"页创建代理（保存进 Store，持久化在 ./data/frpc-store.json）
+#
+# 说明：
+#   - 首次启动若 ./data/frpc.toml 不存在，entrypoint 会按环境变量生成初始配置；
+#     生成后请以界面/文件为准，改环境变量不会再覆盖
+#   - ./data 目录持久化配置与 Store，删掉即恢复出厂
+#   - 需要对外暴露的代理端口（如 tcp remotePort=6022），在 ports 里加 "- 6022:6022"
+
+services:
+  frpc:
+    build: .
+    # 若用现成镜像，注释掉 build，放开下面这行并替换：
+    # image: gitea.eeccc.cc/<你的用户名>/frpc-web-optimize:latest
+    container_name: frpc
+    restart: unless-stopped
+    ports:
+      - "7500:7500"          # Web 管理面板（FRPC_WEB_PORT 若改动需同步改这里）
+    environment:
+      - FRPC_SERVER_ADDR=frps.example.com   # frps 地址（必改）
+      - FRPC_SERVER_PORT=7000
+      - FRPC_TOKEN=                          # frps 认证令牌，可为空后界面里填
+      - FRPC_WEB_PORT=7500
+      - FRPC_WEB_USER=admin
+      - FRPC_WEB_PASSWORD=admin              # 务必修改
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/etc/frp                      # 配置 + Store 持久化
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:7500/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
