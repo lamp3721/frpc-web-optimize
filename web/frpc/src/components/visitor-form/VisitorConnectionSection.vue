@@ -9,10 +9,9 @@
     <ConfigField label="密钥" type="password" v-model="form.secretKey"
       placeholder="共享密钥" :readonly="readonly" tooltip="预共享密钥，必须与服务端代理配置的 secretKey 完全一致。用于 STCP/SUDP/XTCP 的端到端加密认证。" />
     <div class="field-row two-col">
-      <ConfigField label="绑定地址" type="text" v-model="form.bindAddr"
-        placeholder="127.0.0.1" :readonly="readonly" tooltip="访问者本地监听的 IP 地址。127.0.0.1=仅本机访问；0.0.0.0=允许局域网访问。" />
       <ConfigField label="绑定端口" type="number" v-model="form.bindPort"
-        :min="bindPortMin" :max="65535" prop="bindPort" :readonly="readonly" tooltip="访问者本地监听的 TCP 端口。本机的应用通过连接此端口来访问远程服务。" />
+        :min="bindPortMin" :max="65535" prop="bindPort" :readonly="readonly"
+        :tip="bindPortTip" tooltip="访问者本地监听的 TCP 端口。本机的应用通过连接此端口来访问远程服务。" />
     </div>
   </ConfigSection>
 </template>
@@ -36,6 +35,9 @@ const form = computed({
 })
 
 const bindPortMin = computed(() => (form.value.type === 'sudp' ? 1 : undefined))
+const bindPortTip = computed(() => form.value.type === 'sudp'
+  ? ''
+  : '使用 -1 可跳过本地监听（当连接来自其他 visitor 或插件时）。')
 </script>
 
 <style scoped lang="scss">

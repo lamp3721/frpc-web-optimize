@@ -20,9 +20,8 @@ import (
 	"slices"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/util/validation"
-
 	v1 "github.com/fatedier/frp/pkg/config/v1"
+	utilvalidation "github.com/fatedier/frp/pkg/util/validation"
 )
 
 func validateProxyBaseConfigForClient(c *v1.ProxyBaseConfig) error {
@@ -79,9 +78,11 @@ func validateDomainConfigForClient(c *v1.DomainConfig) error {
 }
 
 func validateDomainConfigForServer(c *v1.DomainConfig, s *v1.ServerConfig) error {
+	subDomainHost := strings.ToLower(s.SubDomainHost)
 	for _, domain := range c.CustomDomains {
-		if s.SubDomainHost != "" && len(strings.Split(s.SubDomainHost, ".")) < len(strings.Split(domain, ".")) {
-			if strings.HasSuffix(domain, "."+s.SubDomainHost) {
+		canonicalDomain := strings.ToLower(domain)
+		if subDomainHost != "" && len(strings.Split(subDomainHost, ".")) < len(strings.Split(canonicalDomain, ".")) {
+			if strings.HasSuffix(canonicalDomain, "."+subDomainHost) {
 				return fmt.Errorf("custom domain [%s] should not belong to subdomain host [%s]", domain, s.SubDomainHost)
 			}
 		}
@@ -246,7 +247,7 @@ func ValidateAnnotations(annotations map[string]string) error {
 
 	var errs error
 	for k := range annotations {
-		for _, msg := range validation.IsQualifiedName(strings.ToLower(k)) {
+		for _, msg := range utilvalidation.IsQualifiedName(strings.ToLower(k)) {
 			errs = AppendError(errs, fmt.Errorf("annotation key %s is invalid: %s", k, msg))
 		}
 	}

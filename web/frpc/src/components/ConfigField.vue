@@ -20,7 +20,7 @@
     <!-- number -->
     <el-input
       v-else-if="type === 'number'"
-      :model-value="modelValue != null ? String(modelValue) : ''"
+      :model-value="numberDraft"
       :placeholder="placeholder"
       :disabled="disabled"
       @update:model-value="handleNumberInput($event)"
@@ -125,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import KeyValueEditor from './KeyValueEditor.vue'
 import StringListEditor from './StringListEditor.vue'
@@ -170,8 +170,33 @@ const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
 
+const numberDraft = ref(
+  props.modelValue != null ? String(props.modelValue) : '',
+)
+const preserveNumberDraft = ref(false)
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (preserveNumberDraft.value && value == null) {
+      preserveNumberDraft.value = false
+      return
+    }
+    preserveNumberDraft.value = false
+    numberDraft.value = value != null ? String(value) : ''
+  },
+)
+
 const handleNumberInput = (val: string) => {
+  numberDraft.value = val
   if (val === '') {
+    emit('update:modelValue', undefined)
+    return
+  }
+  // Keep a leading sign as an editing state so negative values can be typed
+  // naturally. The form value is updated once the input becomes a number.
+  if (val === '-' || val === '+') {
+    preserveNumberDraft.value = true
     emit('update:modelValue', undefined)
     return
   }
@@ -180,6 +205,7 @@ const handleNumberInput = (val: string) => {
     let clamped = num
     if (props.min != null && clamped < props.min) clamped = props.min
     if (props.max != null && clamped > props.max) clamped = props.max
+    numberDraft.value = String(clamped)
     emit('update:modelValue', clamped)
   }
 }
