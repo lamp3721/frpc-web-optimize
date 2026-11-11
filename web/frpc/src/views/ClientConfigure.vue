@@ -272,13 +272,15 @@
           </div>
         </div>
         <div class="optional-body">
-          <div class="opt-group">
-            <div class="opt-group-header">
+          <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('serverPort') }">
+            <div class="opt-group-header opt-group-header-click" @click="toggleGroup('serverPort')">
               <el-icon class="opt-group-icon"><Connection /></el-icon>
               <span class="opt-group-title">服务端端口</span>
               <span class="opt-default">默认 7000</span>
+              <span v-if="groupHasValue.serverPort" class="opt-group-dot" title="已自定义"></span>
+              <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" v-show="isGroupOpen('serverPort')">
               <el-form-item>
                 <template #label><span class="opt-label">端口<el-tooltip placement="auto" :content="tips.serverPort" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.serverPort" placeholder="默认 7000" @input="onFormChange" />
@@ -288,11 +290,13 @@
 
           <template v-if="connMode === 'tcpMux'">
             <div class="opt-group">
-              <div class="opt-group-header">
+              <div class="opt-group-header opt-group-header-click" @click="toggleGroup('transportAdv')">
                 <el-icon class="opt-group-icon"><Setting /></el-icon>
                 <span class="opt-group-title">高级传输</span>
+                <span v-if="groupHasValue.transportAdv" class="opt-group-dot" title="已自定义"></span>
+                <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
               </div>
-              <div class="form-grid">
+              <div class="form-grid" v-show="isGroupOpen('transportAdv')">
                 <el-form-item>
                   <template #label><span class="opt-label">保活间隔<span class="opt-default">默认 30s</span><el-tooltip placement="auto" :content="tips.tcpMuxKeepaliveInterval" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tcpMuxKeepaliveInterval" placeholder="秒，默认 30" @input="onFormChange" />
@@ -331,11 +335,13 @@
 
           <template v-if="connMode === 'tcpNoMux'">
             <div class="opt-group">
-              <div class="opt-group-header">
+              <div class="opt-group-header opt-group-header-click" @click="toggleGroup('transportAdv')">
                 <el-icon class="opt-group-icon"><Setting /></el-icon>
                 <span class="opt-group-title">高级传输</span>
+                <span v-if="groupHasValue.transportAdv" class="opt-group-dot" title="已自定义"></span>
+                <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
               </div>
-              <div class="form-grid">
+              <div class="form-grid" v-show="isGroupOpen('transportAdv')">
                 <el-form-item>
                   <template #label><span class="opt-label">拨号超时<span class="opt-default">默认 10s</span><el-tooltip placement="auto" :content="tips.dialServerTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerTimeout" placeholder="秒，默认 10" @input="onFormChange" />
@@ -353,12 +359,14 @@
           </template>
 
           <template v-if="connMode === 'quic'">
-            <div class="opt-group">
-              <div class="opt-group-header">
+            <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('quic') }">
+              <div class="opt-group-header opt-group-header-click" @click="toggleGroup('quic')">
                 <el-icon class="opt-group-icon"><Setting /></el-icon>
                 <span class="opt-group-title">QUIC 协议选项</span>
+                <span v-if="groupHasValue.quic" class="opt-group-dot" title="已自定义"></span>
+                <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
               </div>
-              <div class="form-grid">
+              <div class="form-grid" v-show="isGroupOpen('quic')">
                 <el-form-item>
                   <template #label><span class="opt-label">保活间隔<span class="opt-default">默认 10s</span><el-tooltip placement="auto" :content="tips.quicKeepalivePeriod" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicKeepalivePeriod" placeholder="秒，默认 10" @input="onFormChange" />
@@ -379,12 +387,14 @@
             </div>
           </template>
 
-          <div class="opt-group">
-            <div class="opt-group-header">
+          <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('tls') }">
+            <div class="opt-group-header opt-group-header-click" @click="toggleGroup('tls')">
               <el-icon class="opt-group-icon"><Lock /></el-icon>
               <span class="opt-group-title">TLS</span>
+              <span v-if="groupHasValue.tls" class="opt-group-dot" title="已自定义"></span>
+              <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" v-show="isGroupOpen('tls')">
               <el-form-item>
                 <template #label><span class="opt-label">启用 TLS<span class="opt-default">默认 true</span><el-tooltip placement="auto" :content="tips.tlsEnable" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.tlsEnable" :disabled="connMode === 'quic'" @change="onFormChange" />
@@ -419,12 +429,14 @@
             </div>
           </div>
 
-          <div class="opt-group">
-            <div class="opt-group-header">
+          <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('web') }">
+            <div class="opt-group-header opt-group-header-click" @click="toggleGroup('web')">
               <el-icon class="opt-group-icon"><User /></el-icon>
               <span class="opt-group-title">管理面板</span>
+              <span v-if="groupHasValue.web" class="opt-group-dot" title="已自定义"></span>
+              <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" v-show="isGroupOpen('web')">
               <el-form-item>
                 <template #label><span class="opt-label">监听地址<span class="opt-default">默认 0.0.0.0</span><el-tooltip placement="auto" :content="tips.webAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webAddr" placeholder="0.0.0.0" @input="onFormChange" />
@@ -453,12 +465,14 @@
           </div>
 
           <!-- 日志 -->
-          <div class="opt-group">
-            <div class="opt-group-header">
+          <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('log') }">
+            <div class="opt-group-header opt-group-header-click" @click="toggleGroup('log')">
               <el-icon class="opt-group-icon"><View /></el-icon>
               <span class="opt-group-title">日志</span>
+              <span v-if="groupHasValue.log" class="opt-group-dot" title="已自定义"></span>
+              <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" v-show="isGroupOpen('log')">
               <el-form-item>
                 <template #label><span class="opt-label">日志文件<el-tooltip placement="auto" :content="tips.logFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.logFile" placeholder="留空=控制台输出" @input="onFormChange" />
@@ -481,12 +495,14 @@
           </div>
 
           <!-- 监控服务 -->
-          <div class="opt-group">
-            <div class="opt-group-header">
+          <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('metrics') }">
+            <div class="opt-group-header opt-group-header-click" @click="toggleGroup('metrics')">
               <el-icon class="opt-group-icon"><Connection /></el-icon>
               <span class="opt-group-title">监控服务（metricsServer）</span>
+              <span v-if="groupHasValue.metrics" class="opt-group-dot" title="已自定义"></span>
+              <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" v-show="isGroupOpen('metrics')">
               <el-form-item>
                 <template #label><span class="opt-label">监听地址<span class="opt-default">默认 127.0.0.1</span><el-tooltip placement="auto" :content="tips.metricsAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsAddr" placeholder="127.0.0.1" @input="onFormChange" />
@@ -519,12 +535,14 @@
           </div>
 
           <!-- 高级选项 -->
-          <div class="opt-group">
-            <div class="opt-group-header">
+          <div class="opt-group" :class="{ 'opt-group-open': isGroupOpen('advanced') }">
+            <div class="opt-group-header opt-group-header-click" @click="toggleGroup('advanced')">
               <el-icon class="opt-group-icon"><Setting /></el-icon>
               <span class="opt-group-title">高级选项</span>
+              <span v-if="groupHasValue.advanced" class="opt-group-dot" title="已自定义"></span>
+              <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" v-show="isGroupOpen('advanced')">
               <el-form-item>
                 <template #label><span class="opt-label">STUN 服务器<el-tooltip placement="auto" :content="tips.natHoleStunServer" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.natHoleStunServer" placeholder="stun.easyvoip.com:3478" @input="onFormChange" />
@@ -722,7 +740,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Link, QuestionFilled, Connection, Setting, Lock, User, View, Edit, Delete } from '@element-plus/icons-vue'
+import { Link, QuestionFilled, Connection, Setting, Lock, User, View, Edit, Delete, ArrowDown } from '@element-plus/icons-vue'
 import { useClientStore } from '../stores/client'
 import { useConnectionStore } from '../stores/connection'
 import ActionButton from '@shared/components/ActionButton.vue'
@@ -743,6 +761,41 @@ const connStore = useConnectionStore()
 const activeTab = ref<'connect' | 'proxy'>('connect')
 const previewCollapsed = ref(true)
 const showOptional = ref(true)
+
+// ===== 分组折叠：默认值未改动则折叠，有自定义值自动展开 =====
+const groupExpanded = reactive<Record<string, boolean>>({})
+
+const groupHasValue = computed<Record<string, boolean>>(() => ({
+  serverPort: form.serverPort !== '',
+  transportAdv:
+    [form.tcpMuxKeepaliveInterval, form.dialServerKeepalive, form.dialServerTimeout,
+     form.poolCount, form.wireProtocol, form.connectServerLocalIP, form.proxyURL,
+     form.heartbeatInterval, form.heartbeatTimeout].some((v) => v !== ''),
+  quic:
+    [form.quicKeepalivePeriod, form.quicMaxIdleTimeout, form.quicMaxIncomingStreams,
+     form.poolCount].some((v) => v !== ''),
+  tls:
+    !form.tlsEnable || !form.tlsDisableCustomFirstByte ||
+    form.tlsCertFile !== '' || form.tlsKeyFile !== '' ||
+    form.tlsTrustedCaFile !== '' || form.tlsUseSystemCa || form.tlsServerName !== '',
+  web:
+    form.webAddr !== '0.0.0.0' || form.webPort !== '' || form.webUser !== '' ||
+    form.webPassword !== '' || form.webTlsCertFile !== '' || form.webTlsKeyFile !== '',
+  log: form.logFile !== '' || form.logLevel !== 'info' || form.logMaxDays !== '',
+  metrics:
+    form.metricsAddr !== '' || form.metricsPort !== '' || form.metricsUser !== '' ||
+    form.metricsPassword !== '' || form.metricsPprofEnable ||
+    form.metricsTlsCertFile !== '' || form.metricsTlsKeyFile !== '',
+  advanced:
+    form.natHoleStunServer !== '' || form.udpPacketSize !== '' ||
+    form.start.length > 0 || form.includes.length > 0 ||
+    form.metadatas.length > 0 || form.featureGates.length > 0 ||
+    form.virtualNetAddress !== '' || form.storePath !== '',
+}))
+
+const isGroupOpen = (id: string) => groupExpanded[id] ?? (groupHasValue.value[id] ?? false)
+const toggleGroup = (id: string) => { groupExpanded[id] = !isGroupOpen(id) }
+const resetGroupState = () => { Object.keys(groupExpanded).forEach((k) => delete groupExpanded[k]) }
 const connMode = ref<'tcpMux' | 'tcpNoMux' | 'quic'>('tcpMux')
 
 const tips = {
@@ -1673,6 +1726,7 @@ const fetchData = async () => {
     await clientStore.fetchConfig()
     const parsed = parseToml(clientStore.config)
     applyParsedToForm(parsed)
+    resetGroupState()
 
     if (form.serverPort || form.tlsEnable || form.webUser || form.webPort || connMode.value === 'quic') showOptional.value = true
     rebuildPreview()
@@ -1891,6 +1945,34 @@ fetchData()
   margin-bottom: $spacing-md;
   padding-bottom: $spacing-xs;
   border-bottom: 1px solid $color-border-lighter;
+}
+
+.opt-group-header-click {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover .opt-group-title {
+    color: var(--el-color-primary);
+  }
+}
+
+.opt-group-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--el-color-primary);
+  flex-shrink: 0;
+}
+
+.opt-group-chevron {
+  margin-left: auto;
+  font-size: 13px;
+  color: $color-text-secondary;
+  transition: transform 0.2s;
+}
+
+.opt-group-open .opt-group-chevron {
+  transform: rotate(180deg);
 }
 
 .opt-group-icon {
