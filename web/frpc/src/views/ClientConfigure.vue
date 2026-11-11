@@ -54,6 +54,31 @@
               </template>
               <el-input v-model="form.serverAddr" placeholder="必填，frps 地址" @input="onFormChange" />
             </el-form-item>
+            <el-form-item>
+              <template #label>
+                <span class="label-with-tip">用户名前缀<el-tooltip placement="auto" :content="tips.clientUser" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
+              <el-input v-model="form.clientUser" placeholder="可选，如 office" @input="onFormChange" />
+            </el-form-item>
+            <el-form-item>
+              <template #label>
+                <span class="label-with-tip">客户端 ID<el-tooltip placement="auto" :content="tips.clientID" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
+              <el-input v-model="form.clientID" placeholder="可选，默认自动生成" @input="onFormChange" />
+            </el-form-item>
+            <el-form-item>
+              <template #label>
+                <span class="label-with-tip">DNS 服务器<el-tooltip placement="auto" :content="tips.dnsServer" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
+              <el-input v-model="form.dnsServer" placeholder="可选，如 8.8.8.8" @input="onFormChange" />
+            </el-form-item>
+            <el-form-item>
+              <template #label>
+                <span class="label-with-tip">登录失败退出<el-tooltip placement="auto" :content="tips.loginFailExit" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
+              <el-switch v-model="form.loginFailExit" @change="onFormChange" />
+              <span class="field-hint">{{ form.loginFailExit ? '连不上 frps 时退出进程' : '连不上 frps 时持续重试' }}</span>
+            </el-form-item>
           </div>
         </div>
 
@@ -61,9 +86,87 @@
         <div class="form-section">
           <h3 class="section-title">认证</h3>
           <div class="form-grid">
-            <el-form-item :class="{ 'field-key': isKeyField('authToken') }">
-              <template #label>                <span class="label-with-tip">认证令牌<el-tooltip placement="auto" :content="tips.authToken" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
-              <el-input v-model="form.authToken" placeholder="必填，与服务端一致" @input="onFormChange" />
+            <el-form-item>
+              <template #label>
+                <span class="label-with-tip">认证方式<el-tooltip placement="auto" :content="tips.authMethod" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
+              <el-select v-model="form.authMethod" @change="onFormChange">
+                <el-option label="Token（默认）" value="token" />
+                <el-option label="OIDC" value="oidc" />
+              </el-select>
+            </el-form-item>
+
+            <template v-if="form.authMethod === 'token'">
+              <el-form-item :class="{ 'field-key': isKeyField('authToken') && form.authTokenSourceKind === 'static' }">
+                <template #label>                <span class="label-with-tip">令牌来源<el-tooltip placement="auto" :content="tips.authTokenSource" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-select v-model="form.authTokenSourceKind" @change="onFormChange">
+                  <el-option label="静态值" value="static" />
+                  <el-option label="从文件读取" value="file" />
+                  <el-option label="从命令获取" value="exec" />
+                </el-select>
+              </el-form-item>
+              <el-form-item v-if="form.authTokenSourceKind === 'static'">
+                <template #label>                <span class="label-with-tip">认证令牌<el-tooltip placement="auto" :content="tips.authToken" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.authToken" placeholder="必填，与服务端一致" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item v-if="form.authTokenSourceKind === 'file'">
+                <template #label>                <span class="label-with-tip">令牌文件路径<el-tooltip placement="auto" :content="tips.authTokenFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.authTokenFile" placeholder="/path/to/token" @input="onFormChange" />
+              </el-form-item>
+              <template v-if="form.authTokenSourceKind === 'exec'">
+                <el-form-item>
+                  <template #label>                <span class="label-with-tip">命令<el-tooltip placement="auto" :content="tips.authTokenCommand" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <el-input v-model="form.authTokenCommand" placeholder="如 etctl get token" @input="onFormChange" />
+                </el-form-item>
+                <el-form-item>
+                  <template #label>                <span class="label-with-tip">命令参数<el-tooltip content='传给命令的参数，每行一个。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <StringListEditor v-model="form.authTokenCommandArgs" placeholder="--flag" />
+                </el-form-item>
+              </template>
+            </template>
+
+            <template v-else>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">Client ID<el-tooltip placement="auto" :content="tips.oidcClientID" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcClientID" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">Client Secret<el-tooltip placement="auto" :content="tips.oidcClientSecret" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcClientSecret" type="password" show-password @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">Token Endpoint URL<el-tooltip placement="auto" :content="tips.oidcTokenEndpointURL" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcTokenEndpointURL" placeholder="https://idp.example.com/token" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">Audience<el-tooltip placement="auto" :content="tips.oidcAudience" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcAudience" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">Scope<el-tooltip placement="auto" :content="tips.oidcScope" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcScope" placeholder="如 openid profile" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">CA 证书文件<el-tooltip placement="auto" :content="tips.oidcTrustedCaFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcTrustedCaFile" placeholder="/path/to/ca.pem" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">跳过证书校验<el-tooltip placement="auto" :content="tips.oidcInsecureSkipVerify" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-switch v-model="form.oidcInsecureSkipVerify" @change="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">OIDC 代理<el-tooltip placement="auto" :content="tips.oidcProxyURL" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcProxyURL" placeholder="http://proxy:7890" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">附加 Endpoint 参数<el-tooltip placement="auto" :content="tips.oidcAdditionalEndpointParams" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <KeyValueEditor v-model="form.oidcAdditionalEndpointParams" key-placeholder="参数名" value-placeholder="值" @update:model-value="onFormChange" />
+              </el-form-item>
+            </template>
+
+            <el-form-item>
+              <template #label>                <span class="label-with-tip">附加认证范围<el-tooltip placement="auto" :content="tips.authAdditionalScopes" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+              <StringListEditor v-model="form.authAdditionalScopes" placeholder="HeartBeats 或 NewWorkConns" />
             </el-form-item>
           </div>
         </div>
@@ -76,6 +179,16 @@
               <template #label><span class="label-with-tip">协议<el-tooltip placement="auto" :content="tips.protocol" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
               </template>
               <el-input value="quic" disabled />
+            </el-form-item>
+            <el-form-item v-if="connMode !== 'quic'">
+              <template #label><span class="label-with-tip">传输协议<el-tooltip placement="auto" :content="tips.transportProtocol" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
+              </template>
+              <el-select v-model="form.transportProtocol" @change="onFormChange">
+                <el-option label="TCP（默认）" value="" />
+                <el-option label="KCP" value="kcp" />
+                <el-option label="WebSocket" value="websocket" />
+                <el-option label="WSS" value="wss" />
+              </el-select>
             </el-form-item>
             <el-form-item v-if="connMode !== 'quic'" :class="{ 'field-key': isKeyField('tcpMux') }">
               <template #label>                <span class="label-with-tip">TCP Mux<el-tooltip placement="auto" :content="tips.tcpMux" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
@@ -204,6 +317,14 @@
                   <template #label><span class="opt-label">连接池大小<span class="opt-default">默认 1</span><el-tooltip placement="auto" :content="tips.poolCount" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.poolCount" placeholder="默认 1" @input="onFormChange" />
                 </el-form-item>
+                <el-form-item>
+                  <template #label><span class="opt-label">连接本地 IP<el-tooltip placement="auto" :content="tips.connectServerLocalIP" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <el-input v-model="form.connectServerLocalIP" placeholder="可选，默认自动" @input="onFormChange" />
+                </el-form-item>
+                <el-form-item>
+                  <template #label><span class="opt-label">HTTP 代理<el-tooltip placement="auto" :content="tips.proxyURL" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <el-input v-model="form.proxyURL" placeholder="如 http://proxy:7890" @input="onFormChange" />
+                </el-form-item>
               </div>
             </div>
           </template>
@@ -282,7 +403,15 @@
                   <template #label><span class="opt-label">密钥文件<el-tooltip placement="auto" :content="tips.tlsKeyFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsKeyFile" placeholder="client.key" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item v-if="connMode === 'quic'">
+                <el-form-item>
+                  <template #label><span class="opt-label">受信 CA 文件<el-tooltip placement="auto" :content="tips.tlsTrustedCaFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <el-input v-model="form.tlsTrustedCaFile" placeholder="可选，ca.crt" @input="onFormChange" />
+                </el-form-item>
+                <el-form-item>
+                  <template #label><span class="opt-label">使用系统 CA<span class="opt-default">默认 false</span><el-tooltip placement="auto" :content="tips.tlsUseSystemCa" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <el-switch v-model="form.tlsUseSystemCa" @change="onFormChange" />
+                </el-form-item>
+                <el-form-item>
                   <template #label><span class="opt-label">TLS SNI<el-tooltip placement="auto" :content="tips.tlsServerName" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsServerName" placeholder="留空=serverAddr" @input="onFormChange" />
                 </el-form-item>
@@ -297,16 +426,136 @@
             </div>
             <div class="form-grid">
               <el-form-item>
+                <template #label><span class="opt-label">监听地址<span class="opt-default">默认 0.0.0.0</span><el-tooltip placement="auto" :content="tips.webAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.webAddr" placeholder="0.0.0.0" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
                 <template #label><span class="opt-label">端口<el-tooltip content='Web 管理面板监听端口。Go 源码无默认值，设为 0 则面板不启动。建议 7400。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webPort" placeholder="必填才能启用面板" @input="onFormChange" />
               </el-form-item>
               <el-form-item>
                 <template #label><span class="opt-label">用户名<span class="opt-default">默认 admin</span><el-tooltip placement="auto" :content="tips.webUser" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
-                <el-input v-model="form.user" placeholder="用户名" @input="onFormChange" />
+                <el-input v-model="form.webUser" placeholder="用户名" @input="onFormChange" />
               </el-form-item>
               <el-form-item>
                 <template #label><span class="opt-label">密码<el-tooltip placement="auto" :content="tips.webPassword" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
-                <el-input v-model="form.password" type="password" show-password placeholder="密码" @input="onFormChange" />
+                <el-input v-model="form.webPassword" type="password" show-password placeholder="密码" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">面板 TLS 证书<el-tooltip placement="auto" :content="tips.webTlsCert" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.webTlsCertFile" placeholder="可选，面板走 HTTPS" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">面板 TLS 密钥<el-tooltip content='与面板 TLS 证书成对使用，启用后管理面板以 HTTPS 服务。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.webTlsKeyFile" placeholder="可选" @input="onFormChange" />
+              </el-form-item>
+            </div>
+          </div>
+
+          <!-- 日志 -->
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <el-icon class="opt-group-icon"><View /></el-icon>
+              <span class="opt-group-title">日志</span>
+            </div>
+            <div class="form-grid">
+              <el-form-item>
+                <template #label><span class="opt-label">日志文件<el-tooltip placement="auto" :content="tips.logFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.logFile" placeholder="留空=控制台输出" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">日志级别<span class="opt-default">默认 info</span><el-tooltip placement="auto" :content="tips.logLevel" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-select v-model="form.logLevel" @change="onFormChange">
+                  <el-option label="trace" value="trace" />
+                  <el-option label="debug" value="debug" />
+                  <el-option label="info" value="info" />
+                  <el-option label="warn" value="warn" />
+                  <el-option label="error" value="error" />
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">保留天数<span class="opt-default">默认 3</span><el-tooltip placement="auto" :content="tips.logMaxDays" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.logMaxDays" placeholder="天，0=不自动删除" @input="onFormChange" />
+              </el-form-item>
+            </div>
+          </div>
+
+          <!-- 监控服务 -->
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <el-icon class="opt-group-icon"><Connection /></el-icon>
+              <span class="opt-group-title">监控服务（metricsServer）</span>
+            </div>
+            <div class="form-grid">
+              <el-form-item>
+                <template #label><span class="opt-label">监听地址<span class="opt-default">默认 127.0.0.1</span><el-tooltip placement="auto" :content="tips.metricsAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.metricsAddr" placeholder="127.0.0.1" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">端口<el-tooltip placement="auto" :content="tips.metricsPort" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.metricsPort" placeholder="0=不启动" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">用户名<el-tooltip content='Basic Auth 用户名，保护 /metrics 与 pprof；/healthz 保持匿名。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.metricsUser" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">密码<el-tooltip content='Basic Auth 密码。建议设置，否则 metrics 会暴露内网信息。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.metricsPassword" type="password" show-password @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">启用 pprof<span class="opt-default">默认 false</span><el-tooltip placement="auto" :content="tips.metricsPprof" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-switch v-model="form.metricsPprofEnable" @change="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">TLS 证书<el-tooltip content='与 TLS 密钥成对使用，启用后监控服务以 HTTPS 提供。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.metricsTlsCertFile" placeholder="可选" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">TLS 密钥<el-tooltip content='与 TLS 证书成对使用。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.metricsTlsKeyFile" placeholder="可选" @input="onFormChange" />
+              </el-form-item>
+            </div>
+          </div>
+
+          <!-- 高级选项 -->
+          <div class="opt-group">
+            <div class="opt-group-header">
+              <el-icon class="opt-group-icon"><Setting /></el-icon>
+              <span class="opt-group-title">高级选项</span>
+            </div>
+            <div class="form-grid">
+              <el-form-item>
+                <template #label><span class="opt-label">STUN 服务器<el-tooltip placement="auto" :content="tips.natHoleStunServer" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.natHoleStunServer" placeholder="stun.easyvoip.com:3478" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">UDP 包大小<span class="opt-default">默认 1500</span><el-tooltip placement="auto" :content="tips.udpPacketSize" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.udpPacketSize" placeholder="字节，默认 1500" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">启用代理名单<span class="opt-default">默认全部启用</span><el-tooltip placement="auto" :content="tips.start" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <StringListEditor v-model="form.start" placeholder="代理名称" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">包含配置文件<el-tooltip placement="auto" :content="tips.includes" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <StringListEditor v-model="form.includes" placeholder="./proxies/*.toml" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">客户端元数据<el-tooltip placement="auto" :content="tips.clientMetadatas" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <KeyValueEditor v-model="form.metadatas" key-placeholder="key" value-placeholder="value" @update:model-value="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">Feature Gates<el-tooltip placement="auto" :content="tips.featureGates" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <KeyValueEditor v-model="form.featureGates" key-placeholder="特性名" value-placeholder="true / false" @update:model-value="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">虚拟网络地址<el-tooltip placement="auto" :content="tips.virtualNet" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.virtualNetAddress" placeholder="如 192.168.66.x" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">Store 文件路径<el-tooltip placement="auto" :content="tips.storePath" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.storePath" placeholder="./frpc_store.toml" @input="onFormChange" />
               </el-form-item>
             </div>
           </div>
@@ -479,6 +728,7 @@ import { useConnectionStore } from '../stores/connection'
 import ActionButton from '@shared/components/ActionButton.vue'
 import ConfirmDialog from '@shared/components/ConfirmDialog.vue'
 import StringListEditor from '../components/StringListEditor.vue'
+import KeyValueEditor from '../components/KeyValueEditor.vue'
 import { useResponsive } from '../composables/useResponsive'
 import { parseToml, serializeToml } from '../utils/toml'
 import { CONFIG_DEFAULTS } from '../utils/defaults'
@@ -498,7 +748,26 @@ const connMode = ref<'tcpMux' | 'tcpNoMux' | 'quic'>('tcpMux')
 const tips = {
   serverAddr: 'frps 服务器的 IP 或域名。默认 "0.0.0.0"。必填项。',
   serverPort: 'frps 服务器端口。默认 7000。大部分场景无需修改。',
+  clientUser: '用户名前缀（user）。设置后所有代理名称自动变为 "{user}.{代理名}"，用于多客户端共用一个 frps 时区分归属。对应配置文件根级 user 字段。',
+  clientID: '客户端唯一标识（clientID）。用于在服务端区分不同的 frpc 实例。留空则自动生成。一般无需填写。',
+  dnsServer: 'frpc 使用的 DNS 服务器地址。留空使用系统默认 DNS。仅影响 frpc 自身解析（如 serverAddr 为域名时）。',
+  loginFailExit: '登录失败退出（loginFailExit）。开启：首次连不上 frps 直接退出进程；关闭：持续重试直到成功。systemd/Docker 环境建议开启（配合自动重启）。默认 true。',
+  authMethod: '认证方式。token：使用共享密钥（默认）；oidc：通过 OIDC（OpenID Connect）向身份提供商获取短期令牌，适合需要更高安全性的场景。',
   authToken: 'Token 认证密钥，必须与服务端 auth.token 完全一致。认证方式默认 "token"。无默认值，必填。',
+  authTokenSource: '令牌来源。静态值：直接填密钥；从文件读取：frpc 启动时从文件加载（tokenSource.type = file，可配合脚本动态更新）；从命令获取：执行命令取 stdout 作为令牌（tokenSource.type = exec）。',
+  authTokenFile: '令牌文件路径。frpc 从此文件读取令牌内容（文件内即令牌字符串本身）。与静态令牌互斥。',
+  authTokenCommand: '获取令牌的命令。frpc 执行此命令并取标准输出作为令牌，适合对接 Vault 等动态密钥系统。',
+  authAdditionalScopes: '附加认证范围。让心跳（HeartBeats）和新工作连接（NewWorkConns）也携带认证信息。默认仅登录时认证。',
+  oidcClientID: 'OIDC Client ID。向身份提供商注册的应用 ID。',
+  oidcClientSecret: 'OIDC Client Secret。与 Client ID 配对的应用密钥。',
+  oidcAudience: 'OIDC Audience。令牌的受众声明，部分 IdP（如 Keycloak）必填。',
+  oidcScope: 'OIDC Scope。请求的权限范围，如 "openid profile"。留空使用 IdP 默认值。',
+  oidcTokenEndpointURL: 'OIDC Token Endpoint URL。身份提供商签发令牌的地址，如 https://idp.example.com/realms/frp/protocol/openid-connect/token。',
+  oidcTrustedCaFile: '自定义 CA 证书路径。用于验证 OIDC Token Endpoint 的 TLS 证书（自建 CA 时填写）。',
+  oidcInsecureSkipVerify: '跳过 OIDC Endpoint 的 TLS 证书校验。仅调试使用，生产环境不要开启。',
+  oidcProxyURL: '访问 OIDC Endpoint 使用的代理。支持 http/https/socks5/socks5h，留空直连。内网 frpc 需经代理访问外网 IdP 时填写。',
+  oidcAdditionalEndpointParams: '附加 Endpoint 参数。请求令牌时额外发送的参数键值对。',
+  transportProtocol: 'frpc 连接 frps 的传输协议。TCP（默认）；KCP：基于 UDP，需要 frps 开启 kcpPort，延迟更低；WebSocket/WSS：可穿过仅允许 HTTP 的防火墙/CDN。QUIC 通过上方模式卡片选择。',
   protocol: '传输协议。QUIC 模式下固定为 "quic"，基于 UDP 传输，原生支持多路复用和连接迁移。',
   tcpMux: '是否开启 yamux 多路复用。true=所有控制/工作连接共享 1 条 TCP；false=每条连接独立 TCP。默认 true。<br/><br/>TCPMux 模式下，yamux 每 30s 发送一次 ping 保活，只要 yamux session 存活，所有 work conn stream 就不会被 NAT/防火墙断开。关闭后工作连接建立后完全静默，无任何应用层保活（控制连接仍有 30s 心跳），需依赖 OS TCP keepalive。',
   tcpMuxKeepaliveInterval: 'yamux session 保活 ping 间隔（秒）。yamux 每隔 N 秒发送一次 ping 帧，维持底层 TCP 有流量，防止中间 NAT/防火墙因"空闲超时"丢弃连接。<br/><br/>默认 30s，远低于常见 NAT 空闲超时（60~300s），连接永远不会被误杀。调小可对抗短超时 NAT（如 60s 阈值时设 15s）；调大可减少无效通信。本模式实际保活就靠这一项。<br/><br/>仅在 tcpMux=true 时生效。',
@@ -506,16 +775,33 @@ const tips = {
   poolCount: '连接池大小。frpc 预先向 frps 建立的工作连接数。<br/><br/>TCPMux 模式默认 1，加大可减少新用户连接等待时间。直连模式下加大池可加速轮转，减少单连接闲置时间从而降低被 NAT 断开概率。QUIC 模式建议 ≥3，因为 stream 建立几乎无开销。<br/><br/>取值范围 1~maxPoolCount（服务端）。',
   dialServerTimeout: '客户端连接 frps 的拨号超时（秒）。默认 10。通常无需调整。仅在网络延迟极高的场景适当调大。',
   wireProtocol: 'frpc/frps 内部通信协议版本。默认 v1，可选 v2。仅在服务端也启用 v2 时修改。一般无需配置。',
+  connectServerLocalIP: '连接 frps 时本地绑定的 IP 地址。多网卡/多出口环境指定走哪个网卡。仅 TCP/WebSocket 协议支持，KCP 不支持。留空由系统路由决定。',
+  proxyURL: '连接 frps 使用的 HTTP 代理地址，如 http://proxy:7890。留空直连（且不再读取 http_proxy 环境变量）。frpc 在内网、frps 在公网时常用。',
   tlsEnable: '是否启用 TLS 传输加密。默认 true。<br/><br/>QUIC 协议强制要求 TLS 1.3，必须保持 true。其它模式下关闭仅用于内网测试环境（不推荐）。',
   disableCustomTLSFirstByte: '是否禁用自定义 TLS 首字节协议协商。默认 true（禁用），使用标准 TLS 握手。仅当 frps 使用了 frp 自定义的 TLS 首字节时设为 false。一般不需要修改。',
   tlsCertFile: 'TLS 客户端证书文件路径。仅 mTLS（双向认证）场景使用，普通 token 认证无需填写。QUIC 下服务端必须提供证书。',
   tlsKeyFile: 'TLS 客户端密钥文件路径。仅 mTLS 场景使用，配合证书文件一起使用。普通场景留空。',
-  tlsServerName: 'TLS SNI（Server Name Indication）服务器名称。用于 TLS 握手时的域名验证。留空则使用 serverAddr 的值。Go 后端支持所有协议，当前 UI 仅 QUIC 模式显示。',
+  tlsTrustedCaFile: '受信 CA 证书路径（transport.tls.trustedCaFile）。mTLS 场景验证 frps 服务端证书。设置后不再使用系统 CA。与"使用系统 CA"可同时使用。',
+  tlsUseSystemCa: '使用系统 CA 校验 frps 证书（transport.tls.useSystemCa）。同时设置受信 CA 时，自定义 CA 会加入系统 CA 池。两者都不设时 frpc 跳过验证。',
+  tlsServerName: 'TLS SNI（Server Name Indication）服务器名称。用于 TLS 握手时的域名验证。留空则使用 serverAddr 的值。',
   quicKeepalivePeriod: 'QUIC PING 帧发送间隔（秒）。quic-go 每隔 N 秒发送一个 PING 帧保持连接活跃。\n\nUDP 不像 TCP 有面向连接的状态，NAT 设备需要看到持续流量才不丢弃 UDP 映射。默认 10s 已覆盖绝大多数场景。如果 NAT 环境极度恶劣可设 5s。',
   quicMaxIdleTimeout: 'QUIC 连接空闲断连超时（秒）。连接连续空闲 N 秒（无任何帧，含 PING 帧）后自动关闭。默认 30s。\n\n正常情况下 keepalivePeriod（10s）< maxIdleTimeout（30s），保活 PING 阻止超时触发。若 PING 发送失败，最多 30s 后断连并触发重连。',
   quicMaxIncomingStreams: 'QUIC 最大并发流数。默认 100000。一般不需要修改，除非需要限制并发代理连接数。',
+  webAddr: '管理面板监听地址（webServer.addr）。0.0.0.0=允许其他机器访问（远程管理）；127.0.0.1=仅本机访问，更安全。默认 0.0.0.0。',
   webUser: 'Dashboard 管理面板登录用户名。配合下方密码和端口使用。webServer.port 默认 0（不启动），需手动设置端口。',
   webPassword: 'Dashboard 管理面板登录密码。搭配上方用户名使用。',
+  webTlsCert: '管理面板 HTTPS 证书路径（webServer.tls.certFile）。设置后面板以 HTTPS 服务，配合密钥使用。',
+  metricsAddr: '监控服务监听地址（metricsServer.addr）。默认 127.0.0.1 仅本机访问；0.0.0.0 允许远程采集（务必配密码）。',
+  metricsPort: '监控服务端口（metricsServer.port）。提供 /healthz（匿名）、/metrics 与 pprof（需认证）。0=不启动。与 webServer 独立，不提供 Web 界面。',
+  metricsPprof: '在监控服务上启用 Go pprof 性能分析端点（如 /debug/pprof/）。仅排查性能问题时临时开启。',
+  natHoleStunServer: 'STUN 服务器地址（xtcp 打洞用）。格式 host:port，默认 stun.easyvoip.com:3478。仅在 xtcp 代理打洞时使用。',
+  udpPacketSize: 'UDP 单个数据包最大字节数。默认 1500（常见 MTU）。仅在转发大 UDP 包（如游戏、视频）出现丢包截断时调整。',
+  start: '启用代理名单（start）。列出要启动的代理名称；留空=启用配置中所有代理。与每个代理自身的"启用"开关共同生效（取交集）。',
+  includes: '包含其他配置文件（includes）。把额外的 TOML 文件合并进来，常用于把代理配置拆分到独立文件、或一个 frpc 服务多个用户配置。支持相对路径与 glob。',
+  clientMetadatas: '客户端元数据（metadatas）。附加信息随登录发送给 frps，可被服务端插件读取做权限控制。frps 需配置对应 metadata 校验才有意义。',
+  featureGates: '功能开关（featureGates）。启用或禁用 frp 的实验性/灰度特性，值为 true/false。如 VirtualNet = true。日常使用无需填写。',
+  virtualNet: '虚拟网络地址（virtualNet.address）。启用 frp 虚拟网卡（TUN）功能时配置，需配合 root 权限运行。普通场景留空。',
+  storePath: 'Store 文件路径（store.path）。frpc 内置的配置存储源，代理/访客的增删改保存于此 JSON 文件，本面板的"代理管理"依赖它。修改后需重启 frpc 生效。',
   logFile: '日志输出文件路径。留空则输出到控制台（stdout）。设为如 "./frpc.log" 则写入文件。',
   logLevel: '日志输出级别。trace（最详细）< debug < info（默认）< warn < error（仅错误）。生产环境建议 info，排查问题时临时调低。',
   logMaxDays: '日志文件保留天数。超过天数的日志自动删除。默认 3 天。设为 0 不自动删除。',
@@ -833,10 +1119,30 @@ watch(
 const form = reactive({
   serverAddr: '',
   serverPort: '',
-  user: '',
-  password: '',
-  webPort: '',
+  // 客户端标识
+  clientUser: '',
+  clientID: '',
+  dnsServer: '',
+  loginFailExit: true,
+  // 认证
+  authMethod: 'token',
   authToken: '',
+  authTokenSourceKind: 'static' as 'static' | 'file' | 'exec',
+  authTokenFile: '',
+  authTokenCommand: '',
+  authTokenCommandArgs: [] as string[],
+  authAdditionalScopes: [] as string[],
+  oidcClientID: '',
+  oidcClientSecret: '',
+  oidcAudience: '',
+  oidcScope: '',
+  oidcTokenEndpointURL: '',
+  oidcTrustedCaFile: '',
+  oidcInsecureSkipVerify: false,
+  oidcProxyURL: '',
+  oidcAdditionalEndpointParams: [] as Array<{ key: string; value: string }>,
+  // 传输
+  transportProtocol: '',
   tcpMux: true,
   tcpMuxKeepaliveInterval: '',
   dialServerKeepalive: '',
@@ -845,17 +1151,46 @@ const form = reactive({
   heartbeatTimeout: '',
   poolCount: '',
   wireProtocol: '',
+  connectServerLocalIP: '',
+  proxyURL: '',
   tlsEnable: true,
   tlsDisableCustomFirstByte: true,
   tlsCertFile: '',
   tlsKeyFile: '',
+  tlsTrustedCaFile: '',
+  tlsUseSystemCa: false,
   tlsServerName: '',
   quicKeepalivePeriod: '',
   quicMaxIdleTimeout: '',
   quicMaxIncomingStreams: '',
+  // 管理面板（webServer）
+  webAddr: '0.0.0.0',
+  webPort: '',
+  webUser: '',
+  webPassword: '',
+  webTlsCertFile: '',
+  webTlsKeyFile: '',
+  // 监控服务（metricsServer）
+  metricsAddr: '',
+  metricsPort: '',
+  metricsUser: '',
+  metricsPassword: '',
+  metricsPprofEnable: false,
+  metricsTlsCertFile: '',
+  metricsTlsKeyFile: '',
+  // 日志
   logFile: '',
   logLevel: 'info',
   logMaxDays: '',
+  // 高级
+  natHoleStunServer: '',
+  udpPacketSize: '',
+  start: [] as string[],
+  includes: [] as string[],
+  metadatas: [] as Array<{ key: string; value: string }>,
+  featureGates: [] as Array<{ key: string; value: string }>,
+  virtualNetAddress: '',
+  storePath: '',
 })
 
 const previewToml = ref('')
@@ -908,6 +1243,71 @@ const isDefault = (key: string, value: any): boolean => {
   return value === def || value === '' || (typeof def === 'number' && Number(value) === def)
 }
 
+const kvToMap = (entries: Array<{ key: string; value: string }>): Record<string, any> => {
+  const out: Record<string, any> = {}
+  for (const e of entries) {
+    if (e.key) out[e.key] = e.value
+  }
+  return out
+}
+
+// 表单接管的根级键（表单清空时从配置中移除）
+const FORM_OWNED_ROOT_KEYS = [
+  'serverAddr', 'serverPort', 'user', 'clientID', 'dnsServer', 'loginFailExit',
+  'natHoleStunServer', 'udpPacketSize', 'start', 'includes',
+]
+
+// 表单接管的节及键；null = 整节由表单全量接管
+const FORM_OWNED_SECTION_KEYS: Record<string, string[] | null> = {
+  auth: [
+    'method', 'token', 'additionalScopes',
+    'tokenSource.type', 'tokenSource.file.path', 'tokenSource.exec.command', 'tokenSource.exec.args',
+    'oidc.clientID', 'oidc.clientSecret', 'oidc.audience', 'oidc.scope', 'oidc.tokenEndpointURL',
+    'oidc.trustedCaFile', 'oidc.insecureSkipVerify', 'oidc.proxyURL', 'oidc.additionalEndpointParams',
+  ],
+  transport: [
+    'protocol', 'tcpMux', 'tcpMuxKeepaliveInterval', 'dialServerKeepalive', 'dialServerTimeout',
+    'poolCount', 'wireProtocol', 'heartbeatInterval', 'heartbeatTimeout', 'connectServerLocalIP', 'proxyURL',
+    'tls.enable', 'tls.disableCustomTLSFirstByte', 'tls.certFile', 'tls.keyFile', 'tls.serverName',
+    'tls.trustedCaFile', 'tls.useSystemCa',
+    'quic.keepalivePeriod', 'quic.maxIdleTimeout', 'quic.maxIncomingStreams',
+  ],
+  webServer: ['addr', 'port', 'user', 'password', 'tls.certFile', 'tls.keyFile'],
+  metricsServer: ['addr', 'port', 'user', 'password', 'pprofEnable', 'tls.certFile', 'tls.keyFile'],
+  log: ['to', 'level', 'maxDays'],
+  metadatas: null,
+  featureGates: null,
+  virtualNet: null,
+  store: null,
+}
+
+// 表单生成父节时需移除的冲突子表（数据已由表单字段表达，避免 TOML 重复表定义）
+const FORM_OWNED_SUBSECTIONS: Record<string, RegExp> = {
+  auth: /^auth\.(oidc|tokenSource)$/i,
+  transport: /^transport\.(tls|quic)$/i,
+  webServer: /^webServer\.tls$/i,
+  metricsServer: /^metricsServer\.tls$/i,
+}
+
+// 规范节顺序（表单生成时节名的固定顺序）
+const CANONICAL_SECTIONS = [
+  'auth', 'transport', 'webServer', 'metricsServer', 'log',
+  'metadatas', 'featureGates', 'virtualNet', 'store',
+]
+
+const findSectionKey = (sections: Record<string, Record<string, any>>, name: string): string | undefined => {
+  const lower = name.toLowerCase()
+  return Object.keys(sections).find((k) => k.toLowerCase() === lower)
+}
+
+const writeTlsKeys = (tr: Record<string, any>) => {
+  if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
+  if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
+  if (form.tlsTrustedCaFile) tr['tls.trustedCaFile'] = form.tlsTrustedCaFile
+  if (form.tlsUseSystemCa) tr['tls.useSystemCa'] = true
+  if (form.tlsServerName) tr['tls.serverName'] = form.tlsServerName
+}
+
 const formToConfig = (): FrpcConfig => {
   const roots: Record<string, any> = {}
   const sections: Record<string, Record<string, any>> = {}
@@ -915,9 +1315,52 @@ const formToConfig = (): FrpcConfig => {
 
   if (form.serverAddr) roots['serverAddr'] = form.serverAddr
   if (form.serverPort) roots['serverPort'] = Number(form.serverPort)
+  if (form.clientUser) roots['user'] = form.clientUser
+  if (form.clientID) roots['clientID'] = form.clientID
+  if (form.dnsServer) roots['dnsServer'] = form.dnsServer
+  if (!form.loginFailExit) roots['loginFailExit'] = false
+  if (form.natHoleStunServer) roots['natHoleStunServer'] = form.natHoleStunServer
+  if (form.udpPacketSize) roots['udpPacketSize'] = Number(form.udpPacketSize)
+  if (form.start.length > 0) roots['start'] = [...form.start]
+  if (form.includes.length > 0) roots['includes'] = [...form.includes]
 
-  if (form.authToken) {
-    sections['auth'] = { method: 'token', token: form.authToken }
+  // Auth
+  if (form.authMethod === 'oidc') {
+    const auth: Record<string, any> = { method: 'oidc' }
+    if (form.oidcClientID) auth['oidc.clientID'] = form.oidcClientID
+    if (form.oidcClientSecret) auth['oidc.clientSecret'] = form.oidcClientSecret
+    if (form.oidcAudience) auth['oidc.audience'] = form.oidcAudience
+    if (form.oidcScope) auth['oidc.scope'] = form.oidcScope
+    if (form.oidcTokenEndpointURL) auth['oidc.tokenEndpointURL'] = form.oidcTokenEndpointURL
+    if (form.oidcTrustedCaFile) auth['oidc.trustedCaFile'] = form.oidcTrustedCaFile
+    if (form.oidcInsecureSkipVerify) auth['oidc.insecureSkipVerify'] = true
+    if (form.oidcProxyURL) auth['oidc.proxyURL'] = form.oidcProxyURL
+    const params = kvToMap(form.oidcAdditionalEndpointParams)
+    if (Object.keys(params).length > 0) auth['oidc.additionalEndpointParams'] = params
+    if (form.authAdditionalScopes.length > 0) auth['additionalScopes'] = [...form.authAdditionalScopes]
+    sections['auth'] = auth
+    order.push('__section:auth')
+  } else if (
+    (form.authTokenSourceKind === 'static' && form.authToken) ||
+    (form.authTokenSourceKind === 'file' && form.authTokenFile) ||
+    (form.authTokenSourceKind === 'exec' && form.authTokenCommand) ||
+    form.authAdditionalScopes.length > 0
+  ) {
+    const auth: Record<string, any> = { method: 'token' }
+    if (form.authTokenSourceKind === 'static') {
+      if (form.authToken) auth['token'] = form.authToken
+    } else if (form.authTokenSourceKind === 'file') {
+      auth['tokenSource.type'] = 'file'
+      if (form.authTokenFile) auth['tokenSource.file.path'] = form.authTokenFile
+    } else {
+      auth['tokenSource.type'] = 'exec'
+      if (form.authTokenCommand) auth['tokenSource.exec.command'] = form.authTokenCommand
+      if (form.authTokenCommandArgs.length > 0) {
+        auth['tokenSource.exec.args'] = [...form.authTokenCommandArgs]
+      }
+    }
+    if (form.authAdditionalScopes.length > 0) auth['additionalScopes'] = [...form.authAdditionalScopes]
+    sections['auth'] = auth
     order.push('__section:auth')
   }
 
@@ -927,9 +1370,7 @@ const formToConfig = (): FrpcConfig => {
     if (form.tlsEnable || connMode.value === 'quic') {
       tr['tls.enable'] = true
       if (!isDefault('transport.tls.disableCustomTLSFirstByte', form.tlsDisableCustomFirstByte)) tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
-      if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
-      if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
-      if (form.tlsServerName) tr['tls.serverName'] = form.tlsServerName
+      writeTlsKeys(tr)
     }
     if (form.quicKeepalivePeriod && !isDefault('transport.quic.keepalivePeriod', form.quicKeepalivePeriod)) tr['quic.keepalivePeriod'] = Number(form.quicKeepalivePeriod)
     if (form.quicMaxIdleTimeout && !isDefault('transport.quic.maxIdleTimeout', form.quicMaxIdleTimeout)) tr['quic.maxIdleTimeout'] = Number(form.quicMaxIdleTimeout)
@@ -938,6 +1379,7 @@ const formToConfig = (): FrpcConfig => {
     order.push('__section:transport')
   } else {
     const tr: Record<string, any> = {}
+    if (form.transportProtocol) tr['protocol'] = form.transportProtocol
     if (!form.tcpMux) tr['tcpMux'] = false
     if (form.tcpMux && form.tcpMuxKeepaliveInterval && !isDefault('transport.tcpMuxKeepaliveInterval', form.tcpMuxKeepaliveInterval)) {
       tr['tcpMuxKeepaliveInterval'] = Number(form.tcpMuxKeepaliveInterval)
@@ -950,41 +1392,159 @@ const formToConfig = (): FrpcConfig => {
     if (form.heartbeatInterval) tr['heartbeatInterval'] = Number(form.heartbeatInterval)
     if (form.heartbeatTimeout) tr['heartbeatTimeout'] = Number(form.heartbeatTimeout)
     if (form.wireProtocol && !isDefault('transport.wireProtocol', form.wireProtocol)) tr['wireProtocol'] = form.wireProtocol
+    if (form.connectServerLocalIP) tr['connectServerLocalIP'] = form.connectServerLocalIP
+    if (form.proxyURL) tr['proxyURL'] = form.proxyURL
     if (form.tlsEnable) {
       tr['tls.enable'] = true
       if (!isDefault('transport.tls.disableCustomTLSFirstByte', form.tlsDisableCustomFirstByte)) tr['tls.disableCustomTLSFirstByte'] = form.tlsDisableCustomFirstByte
-      if (form.tlsCertFile) tr['tls.certFile'] = form.tlsCertFile
-      if (form.tlsKeyFile) tr['tls.keyFile'] = form.tlsKeyFile
+      writeTlsKeys(tr)
+    } else {
+      // 显式关闭 TLS（v0.50.0 起默认启用，必须显式写 false）
+      tr['tls.enable'] = false
     }
     sections['transport'] = tr
     order.push('__section:transport')
   }
 
-  if (form.webPort || form.user || form.password) {
+  if (form.webPort || form.webUser || form.webPassword || form.webTlsCertFile) {
     const ws: Record<string, any> = {}
-    ws['addr'] = '0.0.0.0'
+    ws['addr'] = form.webAddr || '0.0.0.0'
     if (form.webPort) ws['port'] = Number(form.webPort)
-    if (form.user) ws['user'] = form.user
-    if (form.password) ws['password'] = form.password
+    if (form.webUser) ws['user'] = form.webUser
+    if (form.webPassword) ws['password'] = form.webPassword
+    if (form.webTlsCertFile) ws['tls.certFile'] = form.webTlsCertFile
+    if (form.webTlsKeyFile) ws['tls.keyFile'] = form.webTlsKeyFile
     sections['webServer'] = ws
     order.push('__section:webServer')
+  }
+
+  if (form.metricsPort || form.metricsAddr || form.metricsUser || form.metricsPassword || form.metricsPprofEnable || form.metricsTlsCertFile) {
+    const ms: Record<string, any> = {}
+    if (form.metricsAddr) ms['addr'] = form.metricsAddr
+    if (form.metricsPort) ms['port'] = Number(form.metricsPort)
+    if (form.metricsUser) ms['user'] = form.metricsUser
+    if (form.metricsPassword) ms['password'] = form.metricsPassword
+    if (form.metricsPprofEnable) ms['pprofEnable'] = true
+    if (form.metricsTlsCertFile) ms['tls.certFile'] = form.metricsTlsCertFile
+    if (form.metricsTlsKeyFile) ms['tls.keyFile'] = form.metricsTlsKeyFile
+    sections['metricsServer'] = ms
+    order.push('__section:metricsServer')
+  }
+
+  const lg: Record<string, any> = {}
+  if (form.logFile) lg['to'] = form.logFile
+  if (form.logLevel && form.logLevel !== 'info') lg['level'] = form.logLevel
+  if (form.logMaxDays) lg['maxDays'] = Number(form.logMaxDays)
+  if (Object.keys(lg).length > 0) {
+    sections['log'] = lg
+    order.push('__section:log')
+  }
+
+  const metadataMap = kvToMap(form.metadatas)
+  if (Object.keys(metadataMap).length > 0) {
+    sections['metadatas'] = metadataMap
+    order.push('__section:metadatas')
+  }
+
+  const gateMap: Record<string, any> = {}
+  for (const e of form.featureGates) {
+    if (!e.key) continue
+    gateMap[e.key] = e.value === 'true' || e.value === 'false' ? e.value === 'true' : e.value
+  }
+  if (Object.keys(gateMap).length > 0) {
+    sections['featureGates'] = gateMap
+    order.push('__section:featureGates')
+  }
+
+  if (form.virtualNetAddress) {
+    sections['virtualNet'] = { address: form.virtualNetAddress }
+    order.push('__section:virtualNet')
+  }
+
+  if (form.storePath) {
+    sections['store'] = { path: form.storePath }
+    order.push('__section:store')
   }
 
   return { roots, sections, proxies: [], visitors: [], order }
 }
 
+const toStrList = (v: any): string[] => {
+  if (Array.isArray(v)) return v.map(String)
+  if (v != null && v !== '') return [String(v)]
+  return []
+}
+
+const toKvEntries = (obj: Record<string, any> | undefined): Array<{ key: string; value: string }> => {
+  if (!obj) return []
+  return Object.entries(obj).map(([key, value]) => ({ key, value: String(value) }))
+}
+
+// 优先读父节的点号键（tls.enable），其次读子表（[transport.tls] enable）
+const readSecVal = (cfg: FrpcConfig, secName: string, key: string): any => {
+  const parent = getSection(cfg.sections, secName)
+  const v = getVal(parent, key)
+  if (v !== undefined) return v
+  const dotIdx = key.indexOf('.')
+  if (dotIdx > 0) {
+    const sub = getSection(cfg.sections, `${secName}.${key.slice(0, dotIdx)}`)
+    return getVal(sub, key.slice(dotIdx + 1))
+  }
+  return undefined
+}
+
 const applyParsedToForm = (cfg: FrpcConfig) => {
   form.serverAddr = getVal(cfg.roots, 'serverAddr') || ''
   form.serverPort = getVal(cfg.roots, 'serverPort') != null ? String(getVal(cfg.roots, 'serverPort')) : ''
+  form.clientUser = getVal(cfg.roots, 'user') || ''
+  form.clientID = getVal(cfg.roots, 'clientID') || ''
+  form.dnsServer = getVal(cfg.roots, 'dnsServer') || ''
+  form.loginFailExit = getVal(cfg.roots, 'loginFailExit') !== false
+  form.natHoleStunServer = getVal(cfg.roots, 'natHoleStunServer') || ''
+  form.udpPacketSize = getVal(cfg.roots, 'udpPacketSize') != null ? String(getVal(cfg.roots, 'udpPacketSize')) : ''
+  form.start = toStrList(getVal(cfg.roots, 'start'))
+  form.includes = toStrList(getVal(cfg.roots, 'includes'))
+  form.metadatas = toKvEntries(getSection(cfg.sections, 'metadatas'))
+  form.virtualNetAddress = getVal(getSection(cfg.sections, 'virtualNet'), 'address') || ''
+  form.storePath = getVal(getSection(cfg.sections, 'store'), 'path') || ''
 
-  const auth = getSection(cfg.sections, 'auth')
-  form.authToken = getVal(auth, 'token') || ''
+  const gates = getSection(cfg.sections, 'featureGates')
+  form.featureGates = toKvEntries(gates)
+
+  const authVal = (key: string) => readSecVal(cfg, 'auth', key)
+  const authMethod = authVal('method') || 'token'
+  form.authMethod = authMethod === 'oidc' ? 'oidc' : 'token'
+  form.authToken = authVal('token') || ''
+  const tsType = authVal('tokenSource.type')
+  if (tsType === 'file') {
+    form.authTokenSourceKind = 'file'
+    form.authTokenFile = authVal('tokenSource.file.path') || ''
+  } else if (tsType === 'exec') {
+    form.authTokenSourceKind = 'exec'
+    form.authTokenCommand = authVal('tokenSource.exec.command') || ''
+    form.authTokenCommandArgs = toStrList(authVal('tokenSource.exec.args'))
+  } else {
+    form.authTokenSourceKind = 'static'
+  }
+  form.authAdditionalScopes = toStrList(authVal('additionalScopes'))
+  form.oidcClientID = authVal('oidc.clientID') || ''
+  form.oidcClientSecret = authVal('oidc.clientSecret') || ''
+  form.oidcAudience = authVal('oidc.audience') || ''
+  form.oidcScope = authVal('oidc.scope') || ''
+  form.oidcTokenEndpointURL = authVal('oidc.tokenEndpointURL') || ''
+  form.oidcTrustedCaFile = authVal('oidc.trustedCaFile') || ''
+  form.oidcInsecureSkipVerify = authVal('oidc.insecureSkipVerify') === true
+  form.oidcProxyURL = authVal('oidc.proxyURL') || ''
+  form.oidcAdditionalEndpointParams = toKvEntries(authVal('oidc.additionalEndpointParams'))
 
   const tr = getSection(cfg.sections, 'transport')
   if (tr) {
-    if (getVal(tr, 'protocol') === 'quic') connMode.value = 'quic'
+    const trVal = (key: string) => readSecVal(cfg, 'transport', key)
+    const protocol = trVal('protocol') || ''
+    if (protocol === 'quic') connMode.value = 'quic'
     else if (getVal(tr, 'tcpMux') === false) connMode.value = 'tcpNoMux'
     else connMode.value = 'tcpMux'
+    form.transportProtocol = protocol === 'quic' ? '' : protocol
 
     form.tcpMux = getVal(tr, 'tcpMux') !== false
     form.tcpMuxKeepaliveInterval = getVal(tr, 'tcpMuxKeepaliveInterval') != null ? String(getVal(tr, 'tcpMuxKeepaliveInterval')) : ''
@@ -994,22 +1554,38 @@ const applyParsedToForm = (cfg: FrpcConfig) => {
     form.heartbeatTimeout = getVal(tr, 'heartbeatTimeout') != null ? String(getVal(tr, 'heartbeatTimeout')) : ''
     form.poolCount = getVal(tr, 'poolCount') != null ? String(getVal(tr, 'poolCount')) : ''
     form.wireProtocol = getVal(tr, 'wireProtocol') || ''
+    form.connectServerLocalIP = getVal(tr, 'connectServerLocalIP') || ''
+    form.proxyURL = getVal(tr, 'proxyURL') || ''
 
-    form.tlsEnable = getVal(tr, 'tls.enable') !== false || getVal(tr, 'protocol') === 'quic'
-    form.tlsDisableCustomFirstByte = getVal(tr, 'tls.disableCustomTLSFirstByte') !== false
-    form.tlsCertFile = getVal(tr, 'tls.certFile') || ''
-    form.tlsKeyFile = getVal(tr, 'tls.keyFile') || ''
-    form.tlsServerName = getVal(tr, 'tls.serverName') || ''
+    form.tlsEnable = trVal('tls.enable') !== false || protocol === 'quic'
+    form.tlsDisableCustomFirstByte = trVal('tls.disableCustomTLSFirstByte') !== false
+    form.tlsCertFile = trVal('tls.certFile') || ''
+    form.tlsKeyFile = trVal('tls.keyFile') || ''
+    form.tlsTrustedCaFile = trVal('tls.trustedCaFile') || ''
+    form.tlsUseSystemCa = trVal('tls.useSystemCa') === true
+    form.tlsServerName = trVal('tls.serverName') || ''
 
-    form.quicKeepalivePeriod = getVal(tr, 'quic.keepalivePeriod') != null ? String(getVal(tr, 'quic.keepalivePeriod')) : ''
-    form.quicMaxIdleTimeout = getVal(tr, 'quic.maxIdleTimeout') != null ? String(getVal(tr, 'quic.maxIdleTimeout')) : ''
-    form.quicMaxIncomingStreams = getVal(tr, 'quic.maxIncomingStreams') != null ? String(getVal(tr, 'quic.maxIncomingStreams')) : ''
+    form.quicKeepalivePeriod = trVal('quic.keepalivePeriod') != null ? String(trVal('quic.keepalivePeriod')) : ''
+    form.quicMaxIdleTimeout = trVal('quic.maxIdleTimeout') != null ? String(trVal('quic.maxIdleTimeout')) : ''
+    form.quicMaxIncomingStreams = trVal('quic.maxIncomingStreams') != null ? String(trVal('quic.maxIncomingStreams')) : ''
   }
 
-  const ws = getSection(cfg.sections, 'webServer')
-  form.webPort = getVal(ws, 'port') != null ? String(getVal(ws, 'port')) : ''
-  form.user = getVal(ws, 'user') || ''
-  form.password = getVal(ws, 'password') || ''
+  const wsVal = (key: string) => readSecVal(cfg, 'webServer', key)
+  form.webAddr = wsVal('addr') || '0.0.0.0'
+  form.webPort = wsVal('port') != null ? String(wsVal('port')) : ''
+  form.webUser = wsVal('user') || ''
+  form.webPassword = wsVal('password') || ''
+  form.webTlsCertFile = wsVal('tls.certFile') || ''
+  form.webTlsKeyFile = wsVal('tls.keyFile') || ''
+
+  const msVal = (key: string) => readSecVal(cfg, 'metricsServer', key)
+  form.metricsAddr = msVal('addr') || ''
+  form.metricsPort = msVal('port') != null ? String(msVal('port')) : ''
+  form.metricsUser = msVal('user') || ''
+  form.metricsPassword = msVal('password') || ''
+  form.metricsPprofEnable = msVal('pprofEnable') === true
+  form.metricsTlsCertFile = msVal('tls.certFile') || ''
+  form.metricsTlsKeyFile = msVal('tls.keyFile') || ''
 
   const lg = getSection(cfg.sections, 'log')
   form.logFile = getVal(lg, 'to') || ''
@@ -1024,24 +1600,64 @@ const rebuildPreview = () => {
   cfg.proxies = current.proxies
   cfg.visitors = current.visitors
 
-  // Merge form-generated sections into current sections (preserve unknown keys)
-  for (const secName of Object.keys(cfg.sections)) {
-    if (current.sections[secName]) {
-      Object.assign(current.sections[secName], cfg.sections[secName])
-      cfg.sections[secName] = current.sections[secName]
+  // 保留 current 中所有节的原始数据（含表单未接管的节与子表）
+  for (const secKey of Object.keys(current.sections)) {
+    // 表单接管的节由下方逻辑处理，这里只拷贝表单未生成且非表单接管的节
+    const isOwned = FORM_OWNED_SECTION_KEYS[secKey] !== undefined ||
+      Object.keys(FORM_OWNED_SECTION_KEYS).some((o) => FORM_OWNED_SUBSECTIONS[o]?.test(secKey))
+    if (!isOwned && !cfg.sections[secKey]) cfg.sections[secKey] = { ...current.sections[secKey] }
+  }
+
+  // 表单接管的节：先移除表单拥有的键（清空字段=从配置删除），再合入表单值
+  for (const [secName, ownedKeys] of Object.entries(FORM_OWNED_SECTION_KEYS)) {
+    const curKey = findSectionKey(current.sections, secName)
+    const formSec = cfg.sections[secName]
+    if (formSec) {
+      const merged: Record<string, any> = curKey ? { ...current.sections[curKey] } : {}
+      if (ownedKeys === null) {
+        for (const k of Object.keys(merged)) delete merged[k]
+      } else if (curKey) {
+        for (const k of ownedKeys) delete merged[k]
+      }
+      Object.assign(merged, formSec)
+      cfg.sections[secName] = merged
+    } else if (curKey && ownedKeys === null) {
+      // 整节接管且表单已清空 → 整节移除
+      delete cfg.sections[curKey]
+    } else if (curKey && ownedKeys !== null) {
+      // 键级接管但表单未生成该节（如 transport 全空）：仅保留非表单键
+      const merged: Record<string, any> = { ...current.sections[curKey] }
+      for (const k of ownedKeys) delete merged[k]
+      if (Object.keys(merged).length > 0) {
+        cfg.sections[curKey] = merged
+      } else {
+        delete cfg.sections[curKey]
+      }
+    }
+    // 表单生成父节时，删除与表单字段冲突的子表（避免 TOML 重复表定义）
+    const subPattern = FORM_OWNED_SUBSECTIONS[secName]
+    if (subPattern && formSec) {
+      for (const secKey of Object.keys(cfg.sections)) {
+        if (subPattern.test(secKey)) delete cfg.sections[secKey]
+      }
     }
   }
-  // Preserve root keys from current that form doesn't handle
-  cfg.roots = { ...current.roots, ...cfg.roots }
 
-  const existingOrder = ['auth', 'transport', 'webServer', 'log'].filter((s) =>
-    current.sections && Object.keys(current.sections).some((k) => k.toLowerCase() === s.toLowerCase()),
-  )
-  const formOrder = cfg.order.filter((o) => {
-    const sectionName = o.slice(10)
-    return !existingOrder.some((e) => e.toLowerCase() === sectionName.toLowerCase())
-  })
-  cfg.order = [...existingOrder.map((s) => `__section:${s}`), ...formOrder]
+  // roots：保留表单未接管的键，表单拥有的键以表单为准（含删除）
+  const roots: Record<string, any> = { ...current.roots }
+  for (const k of FORM_OWNED_ROOT_KEYS) delete roots[k]
+  cfg.roots = { ...roots, ...cfg.roots }
+
+  // 节顺序：表单规范节在前，其余保留原有顺序
+  const existingOrder = CANONICAL_SECTIONS.filter((s) => !!cfg.sections[s])
+  const currentExtra = current.order
+    .filter((o) => o.startsWith('__section:'))
+    .map((o) => o.slice(10))
+    .filter((n) => !CANONICAL_SECTIONS.some((c) => c.toLowerCase() === n.toLowerCase()))
+  cfg.order = [
+    ...existingOrder.map((s) => `__section:${s}`),
+    ...currentExtra.map((s) => `__section:${s}`),
+  ]
   previewToml.value = serializeToml(cfg)
 }
 
@@ -1058,7 +1674,7 @@ const fetchData = async () => {
     const parsed = parseToml(clientStore.config)
     applyParsedToForm(parsed)
 
-    if (form.serverPort || form.tlsEnable || form.user || form.webPort || connMode.value === 'quic') showOptional.value = true
+    if (form.serverPort || form.tlsEnable || form.webUser || form.webPort || connMode.value === 'quic') showOptional.value = true
     rebuildPreview()
   } catch (err: any) {
     ElMessage({ showClose: true, message: '获取配置失败：' + err.message, type: 'warning' })
