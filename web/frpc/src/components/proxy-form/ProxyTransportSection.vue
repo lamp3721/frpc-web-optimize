@@ -10,7 +10,9 @@
       <ConfigField label="带宽限制模式" type="select" v-model="form.bandwidthLimitMode"
         :options="[{ label: '客户端', value: 'client' }, { label: '服务端', value: 'server' }]" :readonly="readonly" tooltip="客户端=由 frpc 侧限速，服务端=由 frps 侧限速。一般选客户端即可。" />
       <ConfigField label="代理协议版本" type="select" v-model="form.proxyProtocolVersion"
-        :options="[{ label: '无', value: '' }, { label: 'v1', value: 'v1' }, { label: 'v2', value: 'v2' }]" :readonly="readonly" tooltip="PROXY Protocol 版本，用于向后端传递真实客户端 IP。None=不使用，v1/v2 需要后端支持。" />
+        :options="[{ label: '无', value: '' }, { label: 'v1', value: 'v1' }, { label: 'v2', value: 'v2' }]" :readonly="readonly"
+        :tip="httpBridgePluginTip"
+        tooltip="PROXY Protocol 版本，用于向后端传递真实客户端 IP。None=不使用，v1/v2 需要后端支持。" />
     </div>
   </ConfigSection>
 </template>
@@ -31,6 +33,13 @@ const emit = defineEmits<{ 'update:modelValue': [value: ProxyFormData] }>()
 const form = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
+})
+
+// HTTP 桥接类插件不走 PROXY protocol（源码中 ProxyProtocolHeader 仅被
+// unix_domain_socket / tls2raw 插件消费），真实 IP 已由 X-Forwarded-For 自动传递
+const httpBridgePluginTip = computed(() => {
+  if (!['http2https', 'https2http', 'https2https', 'http2http'].includes(form.value.pluginType)) return ''
+  return '当前使用 HTTP 类插件，此项目不生效：真实客户端 IP 由插件通过 X-Forwarded-For 自动传递。'
 })
 </script>
 

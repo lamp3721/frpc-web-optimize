@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ConfigField: typeof import('./src/components/ConfigField.vue')['default']
     ConfigSection: typeof import('./src/components/ConfigSection.vue')['default']
+    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDivider: typeof import('element-plus/es')['ElDivider']

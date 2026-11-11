@@ -9,7 +9,7 @@
   <template v-if="['http', 'https', 'tcpmux'].includes(form.type)">
     <div class="field-row two-col">
       <ConfigField label="自定义域名" type="tags" v-model="form.customDomains"
-        prop="customDomains" placeholder="example.com" tooltip="绑定到此代理的域名列表。用户通过此域名 + frps 端口访问你的 HTTP/HTTPS 服务。支持泛域名如 *.example.com。" :readonly="readonly" />
+        prop="customDomains" placeholder="example.com" tooltip="绑定到此代理的域名列表。用户通过此域名 + frps 端口访问你的 HTTP/HTTPS 服务。支持泛域名如 *.example.com。HTTPS 类型下 frps 按 TLS SNI（域名）匹配此代理并加密透传到 frpc。" :readonly="readonly" />
       <ConfigField v-if="form.type !== 'tcpmux'" label="子域名" type="text"
         v-model="form.subdomain" placeholder="test" tooltip="子域名前缀。配合 frps 配置的 subdomainHost 使用。例如填 test，完整域名为 test.subdomainHost。" :readonly="readonly" />
       <ConfigField v-if="form.type === 'tcpmux'" label="复用器" type="select"
