@@ -34,6 +34,42 @@ export function parseToml(text: string): FrpcConfig {
     return line.includes('=') && !line.trim().startsWith('#')
   }
 
+  // 按顶层逗号切分（尊重引号与花括号/方括号嵌套）
+  const splitTopLevel = (s: string): string[] => {
+    const parts: string[] = []
+    let depth = 0
+    let quote = false
+    let current = ''
+    for (const ch of s) {
+      if (quote) {
+        current += ch
+        if (ch === '"') quote = false
+        continue
+      }
+      if (ch === '"') { quote = true; current += ch; continue }
+      if (ch === '{' || ch === '[') { depth++; current += ch; continue }
+      if (ch === '}' || ch === ']') { depth--; current += ch; continue }
+      if (ch === ',' && depth === 0) { parts.push(current.trim()); current = ''; continue }
+      current += ch
+    }
+    if (current.trim() !== '' || parts.length > 0) parts.push(current.trim())
+    return parts.filter((p) => p !== '')
+  }
+
+  const parseInlineTable = (raw: string): Record<string, any> => {
+    // raw 形如 { name = "x", value = "y" }
+    const inner = raw.trim().slice(1, -1).trim()
+    const out: Record<string, any> = {}
+    if (!inner) return out
+    for (const pair of splitTopLevel(inner)) {
+      const eq = pair.indexOf('=')
+      if (eq < 0) continue
+      const k = pair.slice(0, eq).trim().replace(/^"|"$/g, '')
+      out[k] = parseRawValue(pair.slice(eq + 1))
+    }
+    return out
+  }
+
   const parseRawValue = (raw: string): any => {
     const trimmed = raw.trim()
     if (trimmed === 'true') return true
@@ -41,14 +77,13 @@ export function parseToml(text: string): FrpcConfig {
     if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed)
     if (trimmed.startsWith('"') && trimmed.endsWith('"'))
       return trimmed.slice(1, -1)
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      return parseInlineTable(trimmed)
+    }
     if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
       const inner = trimmed.slice(1, -1).trim()
       if (!inner) return []
-      return inner.split(',').map((s) => {
-        const v = s.trim()
-        if (v.startsWith('"') && v.endsWith('"')) return v.slice(1, -1)
-        return v
-      })
+      return splitTopLevel(inner).map((v) => parseRawValue(v))
     }
     return trimmed
   }
@@ -94,6 +129,27 @@ export function parseToml(text: string): FrpcConfig {
       const value = parseRawValue(trimmed.slice(eqIdx + 1))
 
       if (inRoot) {
+        // 根级点号键（metadatas.var1 = "abc"）→ 视为节（TOML 语义即嵌套表）
+        if (key.includes('.')) {
+          const dotIdx = key.indexOf('.')
+          const secName = key.slice(0, dotIdx)
+          const subKey = key.slice(dotIdx + 1)
+          if (!result.sections[secName]) {
+            result.sections[secName] = {}
+            result.order.push(`__section:${secName}`)
+          }
+          result.sections[secName][subKey] = value
+          continue
+        }
+        // 根级内联表（featureGates = { VirtualNet = true }）→ 视为节
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          if (!result.sections[key]) {
+            result.sections[key] = {}
+            result.order.push(`__section:${key}`)
+          }
+          Object.assign(result.sections[key], value)
+          continue
+        }
         result.roots[key] = value
         continue
       }
@@ -121,8 +177,24 @@ function formatValue(value: any): string {
   if (typeof value === 'boolean') return value ? 'true' : 'false'
   if (typeof value === 'number') return String(value)
   if (Array.isArray(value)) {
-    const items = value.map((v) => `"${String(v)}"`).join(', ')
-    return `[${items}]`
+    const items = value.map((v) => {
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        // 内联表数组元素：{ name = "x", value = "y" }
+        const pairs = Object.entries(v)
+          .map(([ik, iv]) => `${ik} = ${formatValue(iv)}`)
+          .join(', ')
+        return `{ ${pairs} }`
+      }
+      return `"${String(v)}"`
+    })
+    return `[${items.join(', ')}]`
+  }
+  if (typeof value === 'object') {
+    // 内联表
+    const pairs = Object.entries(value)
+      .map(([k, v]) => `${k} = ${formatValue(v)}`)
+      .join(', ')
+    return `{ ${pairs} }`
   }
   const s = String(value)
   if (s === '') return '""'
