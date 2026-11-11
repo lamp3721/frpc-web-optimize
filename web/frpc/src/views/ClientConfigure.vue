@@ -122,10 +122,33 @@
                   <template #label>                <span class="label-with-tip">命令参数<el-tooltip content='传给命令的参数，每行一个。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <StringListEditor v-model="form.authTokenCommandArgs" placeholder="--flag" />
                 </el-form-item>
+                <el-form-item>
+                  <template #label>                <span class="label-with-tip">环境变量<el-tooltip content='执行命令时注入的环境变量（name=value），如访问 Vault 需要的 VAULT_ADDR。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <KeyValueEditor v-model="form.authTokenCommandEnv" key-placeholder="变量名" value-placeholder="值" @update:model-value="onFormChange" />
+                </el-form-item>
               </template>
             </template>
 
             <template v-else>
+              <el-form-item>
+                <template #label>                <span class="label-with-tip">OIDC 令牌来源<el-tooltip placement="auto" :content="tips.oidcTokenSource" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-select v-model="form.oidcTokenSourceKind" @change="onFormChange">
+                  <el-option label="静态配置（默认）" value="" />
+                  <el-option label="从文件读取" value="file" />
+                  <el-option label="从命令获取" value="exec" />
+                </el-select>
+              </el-form-item>
+              <el-form-item v-if="form.oidcTokenSourceKind === 'file'">
+                <template #label>                <span class="label-with-tip">令牌文件路径<el-tooltip content='OIDC 令牌从该文件读取。设置后其余 OIDC 字段（Client ID 等）不再生效（Go schema 互斥约束）。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.oidcTokenSourceFile" placeholder="/path/to/oidc-token" @input="onFormChange" />
+              </el-form-item>
+              <template v-else-if="form.oidcTokenSourceKind === 'exec'">
+                <el-form-item>
+                  <template #label>                <span class="label-with-tip">命令<el-tooltip content='执行该命令取 stdout 作为 OIDC 令牌。设置后其余 OIDC 字段不再生效（互斥）。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                  <el-input v-model="form.oidcTokenSourceCommand" placeholder="oidc-token-helper" @input="onFormChange" />
+                </el-form-item>
+              </template>
+              <template v-else>
               <el-form-item>
                 <template #label>                <span class="label-with-tip">Client ID<el-tooltip placement="auto" :content="tips.oidcClientID" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.oidcClientID" @input="onFormChange" />
@@ -162,6 +185,7 @@
                 <template #label>                <span class="label-with-tip">附加 Endpoint 参数<el-tooltip placement="auto" :content="tips.oidcAdditionalEndpointParams" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <KeyValueEditor v-model="form.oidcAdditionalEndpointParams" key-placeholder="参数名" value-placeholder="值" @update:model-value="onFormChange" />
               </el-form-item>
+              </template>
             </template>
 
             <el-form-item>
@@ -460,6 +484,14 @@
               <el-form-item>
                 <template #label><span class="opt-label">面板 TLS 密钥<el-tooltip content='与面板 TLS 证书成对使用，启用后管理面板以 HTTPS 服务。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webTlsKeyFile" placeholder="可选" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">资源目录<el-tooltip placement="auto" :content="tips.webAssetsDir" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.webAssetsDir" placeholder="可选，默认用内置资源" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item>
+                <template #label><span class="opt-label">启用 pprof<span class="opt-default">已弃用</span><el-tooltip placement="auto" :content="tips.webPprof" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-switch v-model="form.webPprofEnable" @change="onFormChange" />
               </el-form-item>
             </div>
           </div>
@@ -780,7 +812,8 @@ const groupHasValue = computed<Record<string, boolean>>(() => ({
     form.tlsTrustedCaFile !== '' || form.tlsUseSystemCa || form.tlsServerName !== '',
   web:
     form.webAddr !== '0.0.0.0' || form.webPort !== '' || form.webUser !== '' ||
-    form.webPassword !== '' || form.webTlsCertFile !== '' || form.webTlsKeyFile !== '',
+    form.webPassword !== '' || form.webTlsCertFile !== '' || form.webTlsKeyFile !== '' ||
+    form.webAssetsDir !== '' || form.webPprofEnable,
   log: form.logFile !== '' || form.logLevel !== 'info' || form.logMaxDays !== '',
   metrics:
     form.metricsAddr !== '' || form.metricsPort !== '' || form.metricsUser !== '' ||
@@ -820,6 +853,9 @@ const tips = {
   oidcInsecureSkipVerify: '跳过 OIDC Endpoint 的 TLS 证书校验。仅调试使用，生产环境不要开启。',
   oidcProxyURL: '访问 OIDC Endpoint 使用的代理。支持 http/https/socks5/socks5h，留空直连。内网 frpc 需经代理访问外网 IdP 时填写。',
   oidcAdditionalEndpointParams: '附加 Endpoint 参数。请求令牌时额外发送的参数键值对。',
+  oidcTokenSource: 'OIDC 令牌来源。静态配置：用下方 Client ID/Secret 等字段向 IdP 取令牌（默认）；文件/命令：直接读取现成的 OIDC 令牌（tokenSource），与其它 OIDC 字段互斥，适合已有令牌分发流程的场景。',
+  webAssetsDir: '管理面板静态资源目录（webServer.assetsDir）。留空使用 frpc 内置资源；开发自定义面板或调试 UI 时指定本地 dist 目录。',
+  webPprof: '在管理面板启用 pprof（webServer.pprofEnable）。已弃用：建议改用下方监控服务的 pprofEnable。',
   transportProtocol: 'frpc 连接 frps 的传输协议。TCP（默认）；KCP：基于 UDP，需要 frps 开启 kcpPort，延迟更低；WebSocket/WSS：可穿过仅允许 HTTP 的防火墙/CDN。QUIC 通过上方模式卡片选择。',
   protocol: '传输协议。QUIC 模式下固定为 "quic"，基于 UDP 传输，原生支持多路复用和连接迁移。',
   tcpMux: '是否开启 yamux 多路复用。true=所有控制/工作连接共享 1 条 TCP；false=每条连接独立 TCP。默认 true。<br/><br/>TCPMux 模式下，yamux 每 30s 发送一次 ping 保活，只要 yamux session 存活，所有 work conn stream 就不会被 NAT/防火墙断开。关闭后工作连接建立后完全静默，无任何应用层保活（控制连接仍有 30s 心跳），需依赖 OS TCP keepalive。',
@@ -1184,6 +1220,7 @@ const form = reactive({
   authTokenFile: '',
   authTokenCommand: '',
   authTokenCommandArgs: [] as string[],
+  authTokenCommandEnv: [] as Array<{ key: string; value: string }>,
   authAdditionalScopes: [] as string[],
   oidcClientID: '',
   oidcClientSecret: '',
@@ -1194,6 +1231,9 @@ const form = reactive({
   oidcInsecureSkipVerify: false,
   oidcProxyURL: '',
   oidcAdditionalEndpointParams: [] as Array<{ key: string; value: string }>,
+  oidcTokenSourceKind: '' as '' | 'file' | 'exec',
+  oidcTokenSourceFile: '',
+  oidcTokenSourceCommand: '',
   // 传输
   transportProtocol: '',
   tcpMux: true,
@@ -1223,6 +1263,8 @@ const form = reactive({
   webPassword: '',
   webTlsCertFile: '',
   webTlsKeyFile: '',
+  webAssetsDir: '',
+  webPprofEnable: false,
   // 监控服务（metricsServer）
   metricsAddr: '',
   metricsPort: '',
@@ -1315,8 +1357,10 @@ const FORM_OWNED_SECTION_KEYS: Record<string, string[] | null> = {
   auth: [
     'method', 'token', 'additionalScopes',
     'tokenSource.type', 'tokenSource.file.path', 'tokenSource.exec.command', 'tokenSource.exec.args',
+    'tokenSource.exec.env',
     'oidc.clientID', 'oidc.clientSecret', 'oidc.audience', 'oidc.scope', 'oidc.tokenEndpointURL',
     'oidc.trustedCaFile', 'oidc.insecureSkipVerify', 'oidc.proxyURL', 'oidc.additionalEndpointParams',
+    'oidc.tokenSource.type', 'oidc.tokenSource.file.path', 'oidc.tokenSource.exec.command',
   ],
   transport: [
     'protocol', 'tcpMux', 'tcpMuxKeepaliveInterval', 'dialServerKeepalive', 'dialServerTimeout',
@@ -1325,7 +1369,7 @@ const FORM_OWNED_SECTION_KEYS: Record<string, string[] | null> = {
     'tls.trustedCaFile', 'tls.useSystemCa',
     'quic.keepalivePeriod', 'quic.maxIdleTimeout', 'quic.maxIncomingStreams',
   ],
-  webServer: ['addr', 'port', 'user', 'password', 'tls.certFile', 'tls.keyFile'],
+  webServer: ['addr', 'port', 'user', 'password', 'tls.certFile', 'tls.keyFile', 'assetsDir', 'pprofEnable'],
   metricsServer: ['addr', 'port', 'user', 'password', 'pprofEnable', 'tls.certFile', 'tls.keyFile'],
   log: ['to', 'level', 'maxDays'],
   metadatas: null,
@@ -1379,24 +1423,40 @@ const formToConfig = (): FrpcConfig => {
 
   // Auth
   if (form.authMethod === 'oidc') {
-    const auth: Record<string, any> = { method: 'oidc' }
-    if (form.oidcClientID) auth['oidc.clientID'] = form.oidcClientID
-    if (form.oidcClientSecret) auth['oidc.clientSecret'] = form.oidcClientSecret
-    if (form.oidcAudience) auth['oidc.audience'] = form.oidcAudience
-    if (form.oidcScope) auth['oidc.scope'] = form.oidcScope
-    if (form.oidcTokenEndpointURL) auth['oidc.tokenEndpointURL'] = form.oidcTokenEndpointURL
-    if (form.oidcTrustedCaFile) auth['oidc.trustedCaFile'] = form.oidcTrustedCaFile
-    if (form.oidcInsecureSkipVerify) auth['oidc.insecureSkipVerify'] = true
-    if (form.oidcProxyURL) auth['oidc.proxyURL'] = form.oidcProxyURL
-    const params = kvToMap(form.oidcAdditionalEndpointParams)
-    if (Object.keys(params).length > 0) auth['oidc.additionalEndpointParams'] = params
-    if (form.authAdditionalScopes.length > 0) auth['additionalScopes'] = [...form.authAdditionalScopes]
-    sections['auth'] = auth
-    order.push('__section:auth')
+    const oidcTokenSourceActive = form.oidcTokenSourceKind === 'file' || form.oidcTokenSourceKind === 'exec'
+    const oidcHasValue = oidcTokenSourceActive || form.oidcClientID || form.oidcClientSecret ||
+      form.oidcAudience || form.oidcScope || form.oidcTokenEndpointURL || form.oidcTrustedCaFile ||
+      form.oidcInsecureSkipVerify || form.oidcProxyURL || form.oidcAdditionalEndpointParams.length > 0 ||
+      form.authAdditionalScopes.length > 0
+    if (oidcHasValue) {
+      const auth: Record<string, any> = { method: 'oidc' }
+      if (form.oidcTokenSourceKind === 'file') {
+        // tokenSource 与其它 OIDC 字段互斥（Go schema 约束）
+        auth['oidc.tokenSource.type'] = 'file'
+        if (form.oidcTokenSourceFile) auth['oidc.tokenSource.file.path'] = form.oidcTokenSourceFile
+      } else if (form.oidcTokenSourceKind === 'exec') {
+        auth['oidc.tokenSource.type'] = 'exec'
+        if (form.oidcTokenSourceCommand) auth['oidc.tokenSource.exec.command'] = form.oidcTokenSourceCommand
+      } else {
+        if (form.oidcClientID) auth['oidc.clientID'] = form.oidcClientID
+        if (form.oidcClientSecret) auth['oidc.clientSecret'] = form.oidcClientSecret
+        if (form.oidcAudience) auth['oidc.audience'] = form.oidcAudience
+        if (form.oidcScope) auth['oidc.scope'] = form.oidcScope
+        if (form.oidcTokenEndpointURL) auth['oidc.tokenEndpointURL'] = form.oidcTokenEndpointURL
+        if (form.oidcTrustedCaFile) auth['oidc.trustedCaFile'] = form.oidcTrustedCaFile
+        if (form.oidcInsecureSkipVerify) auth['oidc.insecureSkipVerify'] = true
+        if (form.oidcProxyURL) auth['oidc.proxyURL'] = form.oidcProxyURL
+        const params = kvToMap(form.oidcAdditionalEndpointParams)
+        if (Object.keys(params).length > 0) auth['oidc.additionalEndpointParams'] = params
+      }
+      if (form.authAdditionalScopes.length > 0) auth['additionalScopes'] = [...form.authAdditionalScopes]
+      sections['auth'] = auth
+      order.push('__section:auth')
+    }
   } else if (
     (form.authTokenSourceKind === 'static' && form.authToken) ||
     (form.authTokenSourceKind === 'file' && form.authTokenFile) ||
-    (form.authTokenSourceKind === 'exec' && form.authTokenCommand) ||
+    (form.authTokenSourceKind === 'exec' && (form.authTokenCommand || form.authTokenCommandArgs.length > 0 || form.authTokenCommandEnv.length > 0)) ||
     form.authAdditionalScopes.length > 0
   ) {
     const auth: Record<string, any> = { method: 'token' }
@@ -1410,6 +1470,10 @@ const formToConfig = (): FrpcConfig => {
       if (form.authTokenCommand) auth['tokenSource.exec.command'] = form.authTokenCommand
       if (form.authTokenCommandArgs.length > 0) {
         auth['tokenSource.exec.args'] = [...form.authTokenCommandArgs]
+      }
+      const envEntries = form.authTokenCommandEnv.filter((e) => e.key)
+      if (envEntries.length > 0) {
+        auth['tokenSource.exec.env'] = envEntries.map((e) => ({ name: e.key, value: e.value }))
       }
     }
     if (form.authAdditionalScopes.length > 0) auth['additionalScopes'] = [...form.authAdditionalScopes]
@@ -1459,7 +1523,7 @@ const formToConfig = (): FrpcConfig => {
     order.push('__section:transport')
   }
 
-  if (form.webPort || form.webUser || form.webPassword || form.webTlsCertFile) {
+  if (form.webPort || form.webUser || form.webPassword || form.webTlsCertFile || form.webAssetsDir || form.webPprofEnable) {
     const ws: Record<string, any> = {}
     ws['addr'] = form.webAddr || '0.0.0.0'
     if (form.webPort) ws['port'] = Number(form.webPort)
@@ -1467,6 +1531,8 @@ const formToConfig = (): FrpcConfig => {
     if (form.webPassword) ws['password'] = form.webPassword
     if (form.webTlsCertFile) ws['tls.certFile'] = form.webTlsCertFile
     if (form.webTlsKeyFile) ws['tls.keyFile'] = form.webTlsKeyFile
+    if (form.webAssetsDir) ws['assetsDir'] = form.webAssetsDir
+    if (form.webPprofEnable) ws['pprofEnable'] = true
     sections['webServer'] = ws
     order.push('__section:webServer')
   }
@@ -1576,6 +1642,10 @@ const applyParsedToForm = (cfg: FrpcConfig) => {
     form.authTokenSourceKind = 'exec'
     form.authTokenCommand = authVal('tokenSource.exec.command') || ''
     form.authTokenCommandArgs = toStrList(authVal('tokenSource.exec.args'))
+    form.authTokenCommandEnv = (Array.isArray(authVal('tokenSource.exec.env'))
+      ? authVal('tokenSource.exec.env')
+      : []
+    ).map((e: any) => ({ key: e?.name || '', value: String(e?.value ?? '') }))
   } else {
     form.authTokenSourceKind = 'static'
   }
@@ -1589,6 +1659,10 @@ const applyParsedToForm = (cfg: FrpcConfig) => {
   form.oidcInsecureSkipVerify = authVal('oidc.insecureSkipVerify') === true
   form.oidcProxyURL = authVal('oidc.proxyURL') || ''
   form.oidcAdditionalEndpointParams = toKvEntries(authVal('oidc.additionalEndpointParams'))
+  const oidcTsType = authVal('oidc.tokenSource.type')
+  form.oidcTokenSourceKind = oidcTsType === 'file' ? 'file' : oidcTsType === 'exec' ? 'exec' : ''
+  form.oidcTokenSourceFile = authVal('oidc.tokenSource.file.path') || ''
+  form.oidcTokenSourceCommand = authVal('oidc.tokenSource.exec.command') || ''
 
   const tr = getSection(cfg.sections, 'transport')
   if (tr) {
@@ -1630,6 +1704,8 @@ const applyParsedToForm = (cfg: FrpcConfig) => {
   form.webPassword = wsVal('password') || ''
   form.webTlsCertFile = wsVal('tls.certFile') || ''
   form.webTlsKeyFile = wsVal('tls.keyFile') || ''
+  form.webAssetsDir = wsVal('assetsDir') || ''
+  form.webPprofEnable = wsVal('pprofEnable') === true
 
   const msVal = (key: string) => readSecVal(cfg, 'metricsServer', key)
   form.metricsAddr = msVal('addr') || ''
