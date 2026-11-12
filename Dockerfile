@@ -39,7 +39,9 @@ COPY --from=web-builder /web/frpc/dist/ /usr/share/nginx/html/
 # nginx 配置模板（nginx 官方 entrypoint 会 envsubst FRPC_UPSTREAM 并生效）
 COPY nginx-frontend.template /etc/nginx/templates/default.conf.template
 
-# 反代目标：你已有的 frpc webServer 地址（容器内外均可，支持容器网络名）
-ENV FRPC_UPSTREAM=http://frpc:7500
+# 反代目标由面板连接设置（X-Frpc-Target 头）动态指定；
+# FRPC_UPSTREAM 仅作为未设置连接信息时的回退默认值
+ENV RESOLVER="127.0.0.11 8.8.8.8 114.114.114.114" \
+    FRPC_UPSTREAM=http://127.0.0.1:7500
 
 EXPOSE 80

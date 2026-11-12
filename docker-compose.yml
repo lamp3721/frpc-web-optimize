@@ -1,20 +1,21 @@
 # frpc Web 配置界面 · 纯前端部署模板
 #
-# 场景：你已有正在运行的 frpc 实例（官方/旧版面板），
-#      本容器只跑优化过的配置界面，通过 FRPC_UPSTREAM 连到它的 API，替换旧面板。
+# 场景：一个面板容器，连接任意多个已有 frpc 实例（替换官方/旧版面板）。
+#      目标 frpc 地址在面板"连接设置"里填——请求经本容器按 X-Frpc-Target
+#      头动态转发到对应 frpc 的 webServer API。
 #
 # 快速开始：
-#   1. 改 FRPC_UPSTREAM 为你已有 frpc 的 webServer 地址
-#   2. docker compose up -d
-#   3. 浏览器打开 http://<宿主机IP>:8080
-#      右上角连接设置：地址填本面板地址，账号密码 = 你 frpc 的 webServer 账号密码
-#      （如 admin/admin，即 frpc.toml [webServer] 里的 user/password）
+#   1. docker compose up -d
+#   2. 浏览器打开 http://<宿主机IP>:8080
+#   3. 右上角连接设置：地址填你 frpc 的 webServer 地址（如 http://192.168.1.10:7500），
+#      账号密码 = 那台 frpc [webServer] 的 user/password
+#   4. 想切另一台 frpc？连接设置里改地址即可，同一个面板随便连
 #
 # 注意：
-#   - 已有 frpc 需在配置里开启 [webServer]（addr 允许本容器访问，不能用 127.0.0.1）
-#   - 连官方版 frpc 时：配置文件编辑页可用；Store 代理管理/场景模板需要
-#     本仓库构建的 frpc（用 dockerfiles/Dockerfile-frpc-full 全家桶镜像）
-#   - 一个面板只连一个 frpc（FRPC_UPSTREAM）；连多个就多起几个容器改端口和地址
+#   - 目标 frpc 的 webServer 必须允许本容器访问（addr 不能是 127.0.0.1）
+#   - 连官方版 frpc：配置文件编辑页可用；Store 代理管理/场景模板需要本仓库
+#     构建的 frpc（dockerfiles/Dockerfile-frpc-full 全家桶镜像）
+#   - 按头转发=开放代理性质，仅在内网使用，不要直接暴露公网
 
 services:
   frpc-web:
@@ -26,8 +27,10 @@ services:
     ports:
       - "8080:80"
     environment:
-      - FRPC_UPSTREAM=http://192.168.1.10:7500   # 必改：已有 frpc 的 webServer 地址
       - TZ=Asia/Shanghai
+      # 以下均可选：
+      # - RESOLVER=127.0.0.11 8.8.8.8 114.114.114.114   # 动态转发 DNS 解析器（含容器内置 DNS）
+      # - FRPC_UPSTREAM=http://192.168.1.10:7500        # 未填连接信息时的回退目标
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
       interval: 30s
