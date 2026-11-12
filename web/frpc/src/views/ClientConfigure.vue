@@ -305,7 +305,7 @@
               <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
             <div class="form-grid" v-show="isGroupOpen('serverPort')">
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('serverPort') }">
                 <template #label><span class="opt-label">端口<el-tooltip placement="auto" :content="tips.serverPort" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.serverPort" placeholder="默认 7000" @input="onFormChange" />
               </el-form-item>
@@ -321,19 +321,19 @@
                 <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
               </div>
               <div class="form-grid" v-show="isGroupOpen('transportAdv')">
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('tcpMuxKeepaliveInterval') }">
                   <template #label><span class="opt-label">保活间隔<span class="opt-default">默认 30s</span><el-tooltip placement="auto" :content="tips.tcpMuxKeepaliveInterval" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tcpMuxKeepaliveInterval" placeholder="秒，默认 30" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('dialServerKeepalive') }">
                   <template #label><span class="opt-label">TCP 保活<span class="opt-default">默认 7200s</span><el-tooltip placement="auto" :content="tips.tcpKeepalive" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerKeepalive" placeholder="秒，默认 7200" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('dialServerTimeout') }">
                   <template #label><span class="opt-label">拨号超时<span class="opt-default">默认 10s</span><el-tooltip placement="auto" :content="tips.dialServerTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerTimeout" placeholder="秒，默认 10" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('wireProtocol') }">
                   <template #label><span class="opt-label">协议版本<span class="opt-default">默认 v1</span><el-tooltip placement="auto" :content="tips.wireProtocol" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-select v-model="form.wireProtocol" @change="onFormChange">
                     <el-option label="v1（默认）" value="" />
@@ -341,15 +341,15 @@
                     <el-option label="v2" value="v2" />
                   </el-select>
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('poolCount') }">
                   <template #label><span class="opt-label">连接池大小<span class="opt-default">默认 1</span><el-tooltip placement="auto" :content="tips.poolCount" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.poolCount" placeholder="默认 1" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('connectServerLocalIP') }">
                   <template #label><span class="opt-label">连接本地 IP<el-tooltip placement="auto" :content="tips.connectServerLocalIP" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.connectServerLocalIP" placeholder="可选，默认自动" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('proxyURL') }">
                   <template #label><span class="opt-label">HTTP 代理<el-tooltip placement="auto" :content="tips.proxyURL" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.proxyURL" placeholder="如 http://proxy:7890" @input="onFormChange" />
                 </el-form-item>
@@ -366,15 +366,15 @@
                 <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
               </div>
               <div class="form-grid" v-show="isGroupOpen('transportAdv')">
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('dialServerTimeout') }">
                   <template #label><span class="opt-label">拨号超时<span class="opt-default">默认 10s</span><el-tooltip placement="auto" :content="tips.dialServerTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.dialServerTimeout" placeholder="秒，默认 10" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('heartbeatInterval') }">
                   <template #label><span class="opt-label">心跳间隔<span class="opt-default">默认 30s</span><el-tooltip content='应用层 Ping 间隔（秒）。本模式下默认 30，自动生效。仅作用于控制连接。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.heartbeatInterval" placeholder="秒，默认 30" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('heartbeatTimeout') }">
                   <template #label><span class="opt-label">心跳超时<span class="opt-default">默认 90s</span><el-tooltip content='应用层 Pong 超时（秒）。默认 90。超过未收到 Pong 判定控制连接断开。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.heartbeatTimeout" placeholder="秒，默认 90" @input="onFormChange" />
                 </el-form-item>
@@ -391,19 +391,19 @@
                 <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
               </div>
               <div class="form-grid" v-show="isGroupOpen('quic')">
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('quicKeepalivePeriod') }">
                   <template #label><span class="opt-label">保活间隔<span class="opt-default">默认 10s</span><el-tooltip placement="auto" :content="tips.quicKeepalivePeriod" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicKeepalivePeriod" placeholder="秒，默认 10" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('quicMaxIdleTimeout') }">
                   <template #label><span class="opt-label">空闲超时<span class="opt-default">默认 30s</span><el-tooltip placement="auto" :content="tips.quicMaxIdleTimeout" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicMaxIdleTimeout" placeholder="秒，默认 30" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('quicMaxIncomingStreams') }">
                   <template #label><span class="opt-label">最大并发流<span class="opt-default">默认 100000</span><el-tooltip placement="auto" :content="tips.quicMaxIncomingStreams" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.quicMaxIncomingStreams" placeholder="默认 100000" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('poolCount') }">
                   <template #label><span class="opt-label">连接池大小<span class="opt-default">默认 1，QUIC 建议 3</span><el-tooltip placement="auto" :content="tips.poolCount" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.poolCount" placeholder="默认 1，QUIC 建议 3" @input="onFormChange" />
                 </el-form-item>
@@ -419,33 +419,33 @@
               <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
             <div class="form-grid" v-show="isGroupOpen('tls')">
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('tlsEnable') }">
                 <template #label><span class="opt-label">启用 TLS<span class="opt-default">默认 true</span><el-tooltip placement="auto" :content="tips.tlsEnable" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.tlsEnable" :disabled="connMode === 'quic'" @change="onFormChange" />
               </el-form-item>
-              <el-form-item v-if="form.tlsEnable || connMode === 'quic'">
+              <el-form-item v-if="form.tlsEnable || connMode === 'quic'" :class="{ 'field-default': dv('tlsDisableCustomFirstByte') }">
                 <template #label><span class="opt-label">禁用自定义首字节<span class="opt-default">默认 true</span><el-tooltip placement="auto" :content="tips.disableCustomTLSFirstByte" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.tlsDisableCustomFirstByte" @change="onFormChange" />
               </el-form-item>
                 <template v-if="form.tlsEnable || connMode === 'quic'">
                   <p class="opt-hint">证书和密钥仅 mTLS 双向认证时需要，普通场景留空即可</p>
-                  <el-form-item>
+                  <el-form-item :class="{ 'field-default': dv('tlsCertFile') }">
                   <template #label><span class="opt-label">证书文件<el-tooltip placement="auto" :content="tips.tlsCertFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsCertFile" placeholder="client.crt" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('tlsKeyFile') }">
                   <template #label><span class="opt-label">密钥文件<el-tooltip placement="auto" :content="tips.tlsKeyFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsKeyFile" placeholder="client.key" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('tlsTrustedCaFile') }">
                   <template #label><span class="opt-label">受信 CA 文件<el-tooltip placement="auto" :content="tips.tlsTrustedCaFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsTrustedCaFile" placeholder="可选，ca.crt" @input="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('tlsUseSystemCa') }">
                   <template #label><span class="opt-label">使用系统 CA<span class="opt-default">默认 false</span><el-tooltip placement="auto" :content="tips.tlsUseSystemCa" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-switch v-model="form.tlsUseSystemCa" @change="onFormChange" />
                 </el-form-item>
-                <el-form-item>
+                <el-form-item :class="{ 'field-default': dv('tlsServerName') }">
                   <template #label><span class="opt-label">TLS SNI<el-tooltip placement="auto" :content="tips.tlsServerName" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                   <el-input v-model="form.tlsServerName" placeholder="留空=serverAddr" @input="onFormChange" />
                 </el-form-item>
@@ -461,35 +461,35 @@
               <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
             <div class="form-grid" v-show="isGroupOpen('web')">
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webAddr') }">
                 <template #label><span class="opt-label">监听地址<span class="opt-default">默认 0.0.0.0</span><el-tooltip placement="auto" :content="tips.webAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webAddr" placeholder="0.0.0.0" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webPort') }">
                 <template #label><span class="opt-label">端口<el-tooltip content='Web 管理面板监听端口。Go 源码无默认值，设为 0 则面板不启动。建议 7400。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webPort" placeholder="必填才能启用面板" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webUser') }">
                 <template #label><span class="opt-label">用户名<span class="opt-default">默认 admin</span><el-tooltip placement="auto" :content="tips.webUser" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webUser" placeholder="用户名" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webPassword') }">
                 <template #label><span class="opt-label">密码<el-tooltip placement="auto" :content="tips.webPassword" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webPassword" type="password" show-password placeholder="密码" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webTlsCertFile') }">
                 <template #label><span class="opt-label">面板 TLS 证书<el-tooltip placement="auto" :content="tips.webTlsCert" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webTlsCertFile" placeholder="可选，面板走 HTTPS" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webTlsKeyFile') }">
                 <template #label><span class="opt-label">面板 TLS 密钥<el-tooltip content='与面板 TLS 证书成对使用，启用后管理面板以 HTTPS 服务。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webTlsKeyFile" placeholder="可选" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webAssetsDir') }">
                 <template #label><span class="opt-label">资源目录<el-tooltip placement="auto" :content="tips.webAssetsDir" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.webAssetsDir" placeholder="可选，默认用内置资源" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('webPprofEnable') }">
                 <template #label><span class="opt-label">启用 pprof<span class="opt-default">已弃用</span><el-tooltip placement="auto" :content="tips.webPprof" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.webPprofEnable" @change="onFormChange" />
               </el-form-item>
@@ -505,11 +505,11 @@
               <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
             <div class="form-grid" v-show="isGroupOpen('log')">
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('logFile') }">
                 <template #label><span class="opt-label">日志文件<el-tooltip placement="auto" :content="tips.logFile" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.logFile" placeholder="留空=控制台输出" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('logLevel') }">
                 <template #label><span class="opt-label">日志级别<span class="opt-default">默认 info</span><el-tooltip placement="auto" :content="tips.logLevel" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-select v-model="form.logLevel" @change="onFormChange">
                   <el-option label="trace" value="trace" />
@@ -519,7 +519,7 @@
                   <el-option label="error" value="error" />
                 </el-select>
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('logMaxDays') }">
                 <template #label><span class="opt-label">保留天数<span class="opt-default">默认 3</span><el-tooltip placement="auto" :content="tips.logMaxDays" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.logMaxDays" placeholder="天，0=不自动删除" @input="onFormChange" />
               </el-form-item>
@@ -535,31 +535,31 @@
               <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
             <div class="form-grid" v-show="isGroupOpen('metrics')">
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsAddr') }">
                 <template #label><span class="opt-label">监听地址<span class="opt-default">默认 127.0.0.1</span><el-tooltip placement="auto" :content="tips.metricsAddr" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsAddr" placeholder="127.0.0.1" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsPort') }">
                 <template #label><span class="opt-label">端口<el-tooltip placement="auto" :content="tips.metricsPort" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsPort" placeholder="0=不启动" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsUser') }">
                 <template #label><span class="opt-label">用户名<el-tooltip content='Basic Auth 用户名，保护 /metrics 与 pprof；/healthz 保持匿名。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsUser" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsPassword') }">
                 <template #label><span class="opt-label">密码<el-tooltip content='Basic Auth 密码。建议设置，否则 metrics 会暴露内网信息。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsPassword" type="password" show-password @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsPprofEnable') }">
                 <template #label><span class="opt-label">启用 pprof<span class="opt-default">默认 false</span><el-tooltip placement="auto" :content="tips.metricsPprof" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-switch v-model="form.metricsPprofEnable" @change="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsTlsCertFile') }">
                 <template #label><span class="opt-label">TLS 证书<el-tooltip content='与 TLS 密钥成对使用，启用后监控服务以 HTTPS 提供。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsTlsCertFile" placeholder="可选" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metricsTlsKeyFile') }">
                 <template #label><span class="opt-label">TLS 密钥<el-tooltip content='与 TLS 证书成对使用。' placement="auto" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.metricsTlsKeyFile" placeholder="可选" @input="onFormChange" />
               </el-form-item>
@@ -575,35 +575,35 @@
               <el-icon class="opt-group-chevron"><ArrowDown /></el-icon>
             </div>
             <div class="form-grid" v-show="isGroupOpen('advanced')">
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('natHoleStunServer') }">
                 <template #label><span class="opt-label">STUN 服务器<el-tooltip placement="auto" :content="tips.natHoleStunServer" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.natHoleStunServer" placeholder="stun.easyvoip.com:3478" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('udpPacketSize') }">
                 <template #label><span class="opt-label">UDP 包大小<span class="opt-default">默认 1500</span><el-tooltip placement="auto" :content="tips.udpPacketSize" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.udpPacketSize" placeholder="字节，默认 1500" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('start') }">
                 <template #label><span class="opt-label">启用代理名单<span class="opt-default">默认全部启用</span><el-tooltip placement="auto" :content="tips.start" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <StringListEditor v-model="form.start" placeholder="代理名称" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('includes') }">
                 <template #label><span class="opt-label">包含配置文件<el-tooltip placement="auto" :content="tips.includes" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <StringListEditor v-model="form.includes" placeholder="./proxies/*.toml" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('metadatas') }">
                 <template #label><span class="opt-label">客户端元数据<el-tooltip placement="auto" :content="tips.clientMetadatas" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <KeyValueEditor v-model="form.metadatas" key-placeholder="key" value-placeholder="value" @update:model-value="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('featureGates') }">
                 <template #label><span class="opt-label">Feature Gates<el-tooltip placement="auto" :content="tips.featureGates" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <KeyValueEditor v-model="form.featureGates" key-placeholder="特性名" value-placeholder="true / false" @update:model-value="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('virtualNetAddress') }">
                 <template #label><span class="opt-label">虚拟网络地址<el-tooltip placement="auto" :content="tips.virtualNet" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.virtualNetAddress" placeholder="如 192.168.66.x" @input="onFormChange" />
               </el-form-item>
-              <el-form-item>
+              <el-form-item :class="{ 'field-default': dv('storePath') }">
                 <template #label><span class="opt-label">Store 文件路径<el-tooltip placement="auto" :content="tips.storePath" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.storePath" placeholder="./frpc_store.toml" @input="onFormChange" />
               </el-form-item>
@@ -829,6 +829,59 @@ const groupHasValue = computed<Record<string, boolean>>(() => ({
 const isGroupOpen = (id: string) => groupExpanded[id] ?? (groupHasValue.value[id] ?? false)
 const toggleGroup = (id: string) => { groupExpanded[id] = !isGroupOpen(id) }
 const resetGroupState = () => { Object.keys(groupExpanded).forEach((k) => delete groupExpanded[k]) }
+
+// ===== 字段级灰显：仍是默认值（未写入配置）的字段整体置灰 =====
+const FIELD_DEFAULTS: Record<string, () => boolean> = {
+  serverPort: () => form.serverPort === '',
+  tcpMuxKeepaliveInterval: () => form.tcpMuxKeepaliveInterval === '',
+  dialServerKeepalive: () => form.dialServerKeepalive === '',
+  dialServerTimeout: () => form.dialServerTimeout === '',
+  heartbeatInterval: () => form.heartbeatInterval === '',
+  heartbeatTimeout: () => form.heartbeatTimeout === '',
+  poolCount: () => form.poolCount === '',
+  wireProtocol: () => form.wireProtocol === '',
+  connectServerLocalIP: () => form.connectServerLocalIP === '',
+  proxyURL: () => form.proxyURL === '',
+  quicKeepalivePeriod: () => form.quicKeepalivePeriod === '',
+  quicMaxIdleTimeout: () => form.quicMaxIdleTimeout === '',
+  quicMaxIncomingStreams: () => form.quicMaxIncomingStreams === '',
+  tlsEnable: () => form.tlsEnable === true,
+  tlsDisableCustomFirstByte: () => form.tlsDisableCustomFirstByte === true,
+  tlsCertFile: () => form.tlsCertFile === '',
+  tlsKeyFile: () => form.tlsKeyFile === '',
+  tlsTrustedCaFile: () => form.tlsTrustedCaFile === '',
+  tlsUseSystemCa: () => form.tlsUseSystemCa === false,
+  tlsServerName: () => form.tlsServerName === '',
+  webAddr: () => form.webAddr === '0.0.0.0',
+  webPort: () => form.webPort === '',
+  webUser: () => form.webUser === '',
+  webPassword: () => form.webPassword === '',
+  webTlsCertFile: () => form.webTlsCertFile === '',
+  webTlsKeyFile: () => form.webTlsKeyFile === '',
+  webAssetsDir: () => form.webAssetsDir === '',
+  webPprofEnable: () => form.webPprofEnable === false,
+  logFile: () => form.logFile === '',
+  logLevel: () => form.logLevel === 'info',
+  logMaxDays: () => form.logMaxDays === '',
+  metricsAddr: () => form.metricsAddr === '',
+  metricsPort: () => form.metricsPort === '',
+  metricsUser: () => form.metricsUser === '',
+  metricsPassword: () => form.metricsPassword === '',
+  metricsPprofEnable: () => form.metricsPprofEnable === false,
+  metricsTlsCertFile: () => form.metricsTlsCertFile === '',
+  metricsTlsKeyFile: () => form.metricsTlsKeyFile === '',
+  natHoleStunServer: () => form.natHoleStunServer === '',
+  udpPacketSize: () => form.udpPacketSize === '',
+  start: () => form.start.length === 0,
+  includes: () => form.includes.length === 0,
+  metadatas: () => form.metadatas.length === 0,
+  featureGates: () => form.featureGates.length === 0,
+  virtualNetAddress: () => form.virtualNetAddress === '',
+  storePath: () => form.storePath === '',
+}
+
+// 默认值字段 → true（模板绑定用）
+const dv = (key: string) => FIELD_DEFAULTS[key]?.() ?? false
 const connMode = ref<'tcpMux' | 'tcpNoMux' | 'quic'>('tcpMux')
 
 const tips = {
@@ -2050,6 +2103,18 @@ fetchData()
 .opt-group-open .opt-group-chevron {
   transform: rotate(180deg);
 }
+
+/* 默认值字段置灰：未改动的字段整体淡化，改动后自动恢复 */
+.field-default {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
+}
+
 
 .opt-group-icon {
   font-size: 15px;
