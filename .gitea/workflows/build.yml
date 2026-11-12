@@ -18,6 +18,7 @@ on:
       - 'go.sum'
       - 'Dockerfile'
       - 'docker-entrypoint.sh'
+      - 'nginx-frontend.template'
       - '.dockerignore'
       - '.gitea/workflows/**'
     paths-ignore:

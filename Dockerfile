@@ -1,6 +1,20 @@
 # syntax=docker/dockerfile:1
 
-# ============ 前端构建：frpc Web 配置界面 ============
+# ============================================================
+# frpc Web 配置界面 · 纯前端镜像
+# 只跑优化过的配置界面（静态文件 + nginx），
+# 通过 FRPC_UPSTREAM 连接你已有的 frpc 实例的 webServer API，
+# 替换官方/旧版面板。
+# ============================================================
+# 用法：
+#   docker run -d -p 8080:80 -e FRPC_UPSTREAM=http://<frpc机器>:7500 \
+#     ghcr.io/lamp3721/frpc-web-optimize:latest
+#   浏览器打开 http://<本机>:8080，连接设置里填 frpc 面板的账号密码
+#
+# 需要 frpc 自带完整功能的（Store 代理管理/场景模板），
+# 用 dockerfiles/Dockerfile-frpc-full 的全家桶镜像。
+
+# ============ 前端构建 ============
 FROM node:22-alpine AS web-builder
 
 WORKDIR /web
@@ -11,46 +25,21 @@ COPY web/frpc/package.json ./frpc/package.json
 COPY web/frps/package.json ./frps/package.json
 RUN npm ci
 
-# 再拷贝源码并构建（产物输出到 /web/frpc/dist）
+# 再拷贝源码并构建
 COPY web/shared/ ./shared/
 COPY web/frpc/ ./frpc/
 RUN npm run build --workspace frpc
 
-# ============ Go 构建：frpc（前端资源一并嵌入二进制） ============
-FROM golang:1.26-alpine AS building
+# ============ 运行时：nginx 托管 + API 反代 ============
+FROM nginx:alpine
 
-# Go 模块代理（国内环境友好，全球可达；构建时可覆盖：--build-arg GOPROXY=）
-ARG GOPROXY="https://goproxy.cn,direct"
+# 静态文件
+COPY --from=web-builder /web/frpc/dist/ /usr/share/nginx/html/
 
-COPY . /building
-COPY --from=web-builder /web/frpc/dist /building/web/frpc/dist
-WORKDIR /building
+# nginx 配置模板（nginx 官方 entrypoint 会 envsubst FRPC_UPSTREAM 并生效）
+COPY nginx-frontend.template /etc/nginx/templates/default.conf.template
 
-RUN env CGO_ENABLED=0 GOFLAGS=-buildvcs=false \
-    go build -trimpath -ldflags "-s -w" -tags frpc -o bin/frpc ./cmd/frpc
+# 反代目标：你已有的 frpc webServer 地址（容器内外均可，支持容器网络名）
+ENV FRPC_UPSTREAM=http://frpc:7500
 
-# ============ 运行时 ============
-FROM alpine:3
-
-RUN apk add --no-cache tzdata ca-certificates
-
-# 非交互式工具用于容器内测试（nc/wget 为 busybox 自带）
-COPY --from=building /building/bin/frpc /usr/bin/frpc
-COPY docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
-RUN chmod +x /usr/bin/docker-entrypoint.sh
-
-# 配置与 Store 数据目录（挂载卷持久化）
-ENV FRPC_CONFIG=/etc/frp/frpc.toml \
-    FRPC_SERVER_ADDR=127.0.0.1 \
-    FRPC_SERVER_PORT=7000 \
-    FRPC_WEB_PORT=7500 \
-    FRPC_WEB_USER=admin \
-    FRPC_WEB_PASSWORD=admin
-
-VOLUME ["/etc/frp"]
-
-# frpc Web 管理面板
-EXPOSE 7500
-
-# 供代理使用的端口段按需自行映射（-p <remotePort>:<remotePort>）
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+EXPOSE 80
