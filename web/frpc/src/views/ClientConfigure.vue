@@ -54,31 +54,6 @@
               </template>
               <el-input v-model="form.serverAddr" placeholder="必填，frps 地址" @input="onFormChange" />
             </el-form-item>
-            <el-form-item>
-              <template #label>
-                <span class="label-with-tip">用户名前缀<el-tooltip placement="auto" :content="tips.clientUser" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
-              </template>
-              <el-input v-model="form.clientUser" placeholder="可选，如 office" @input="onFormChange" />
-            </el-form-item>
-            <el-form-item>
-              <template #label>
-                <span class="label-with-tip">客户端 ID<el-tooltip placement="auto" :content="tips.clientID" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
-              </template>
-              <el-input v-model="form.clientID" placeholder="可选，默认自动生成" @input="onFormChange" />
-            </el-form-item>
-            <el-form-item>
-              <template #label>
-                <span class="label-with-tip">DNS 服务器<el-tooltip placement="auto" :content="tips.dnsServer" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
-              </template>
-              <el-input v-model="form.dnsServer" placeholder="可选，如 8.8.8.8" @input="onFormChange" />
-            </el-form-item>
-            <el-form-item>
-              <template #label>
-                <span class="label-with-tip">登录失败退出<el-tooltip placement="auto" :content="tips.loginFailExit" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span>
-              </template>
-              <el-switch v-model="form.loginFailExit" @change="onFormChange" />
-              <span class="field-hint">{{ form.loginFailExit ? '连不上 frps 时退出进程' : '连不上 frps 时持续重试' }}</span>
-            </el-form-item>
           </div>
         </div>
 
@@ -607,6 +582,22 @@
                 <template #label><span class="opt-label">Store 文件路径<el-tooltip placement="auto" :content="tips.storePath" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
                 <el-input v-model="form.storePath" placeholder="./frpc_store.toml" @input="onFormChange" />
               </el-form-item>
+              <el-form-item :class="{ 'field-default': dv('clientUser') }">
+                <template #label><span class="opt-label">用户名前缀<el-tooltip placement="auto" :content="tips.clientUser" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.clientUser" placeholder="可选，如 office" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item :class="{ 'field-default': dv('clientID') }">
+                <template #label><span class="opt-label">客户端 ID<el-tooltip placement="auto" :content="tips.clientID" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.clientID" placeholder="可选，默认自动生成" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item :class="{ 'field-default': dv('dnsServer') }">
+                <template #label><span class="opt-label">DNS 服务器<el-tooltip placement="auto" :content="tips.dnsServer" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-input v-model="form.dnsServer" placeholder="可选，如 8.8.8.8" @input="onFormChange" />
+              </el-form-item>
+              <el-form-item :class="{ 'field-default': dv('loginFailExit') }">
+                <template #label><span class="opt-label">登录失败退出<span class="opt-default">默认 true</span><el-tooltip placement="auto" :content="tips.loginFailExit" :show-after="0" raw-content><el-icon class="tip-icon"><QuestionFilled /></el-icon></el-tooltip></span></template>
+                <el-switch v-model="form.loginFailExit" @change="onFormChange" />
+              </el-form-item>
             </div>
           </div>
         </div>
@@ -823,7 +814,9 @@ const groupHasValue = computed<Record<string, boolean>>(() => ({
     form.natHoleStunServer !== '' || form.udpPacketSize !== '' ||
     form.start.length > 0 || form.includes.length > 0 ||
     form.metadatas.length > 0 || form.featureGates.length > 0 ||
-    form.virtualNetAddress !== '' || form.storePath !== '',
+    form.virtualNetAddress !== '' || form.storePath !== '' ||
+    form.clientUser !== '' || form.clientID !== '' ||
+    form.dnsServer !== '' || form.loginFailExit !== true,
 }))
 
 const isGroupOpen = (id: string) => groupExpanded[id] ?? (groupHasValue.value[id] ?? false)
@@ -878,6 +871,10 @@ const FIELD_DEFAULTS: Record<string, () => boolean> = {
   featureGates: () => form.featureGates.length === 0,
   virtualNetAddress: () => form.virtualNetAddress === '',
   storePath: () => form.storePath === '',
+  clientUser: () => form.clientUser === '',
+  clientID: () => form.clientID === '',
+  dnsServer: () => form.dnsServer === '',
+  loginFailExit: () => form.loginFailExit === true,
 }
 
 // 默认值字段 → true（模板绑定用）
